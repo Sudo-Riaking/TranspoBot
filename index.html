@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>TranspoBot Pro | Gestion de Transport Intelligent</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  body.dark-mode {
+    background: #0f172a;
+    color: #f1f5f9;
+  }
+  body.dark-mode .card,
+  body.dark-mode .stat-card,
+  body.dark-mode .top-bar,
+  body.dark-mode .chat-container,
+  body.dark-mode .message.bot .message-bubble,
+  body.dark-mode .suggestion-chip,
+  body.dark-mode .weather-widget,
+  body.dark-mode .modal-content,
+  body.dark-mode .search-bar input {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+  body.dark-mode .weather-widget {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+  }
+  body.dark-mode .forecast-item {
+    background: #0f172a;
+  }
+
+  :root {
+    --rose: #f43f5e;
+    --rose-light: #ffe4e8;
+    --violet: #8b5cf6;
+    --violet-light: #ede9fe;
+    --bleu-clair: #38bdf8;
+    --bleu-clair-light: #e0f2fe;
+    --bleu-nuit: #0f172a;
+    --bleu-nuit-light: #1e293b;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-600: #475569;
+  }
+
+  .app { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 280px;
+    background: var(--bleu-nuit);
+    color: white;
+    
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+  body.dark-mode .sidebar { background: #020617; }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .logo-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 4px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.7);
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+  .nav-item.active {
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    color: white;
+  }
+  .main-content { flex: 1; margin-left: 280px; padding: 2rem; }
+  .top-bar {
+    background: white;
+    border-radius: 20px;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .theme-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { background: var(--gray-100); transform: rotate(15deg); }
+  
+  /* ========== BARRE DE RECHERCHE ========== */
+  .search-bar {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .search-bar input {
+    width: 100%;
+    padding: 12px 45px 12px 20px;
+    border: 2px solid var(--gray-200);
+    border-radius: 25px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    background: white;
+  }
+  .search-bar input:focus {
+    outline: none;
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(244,63,94,0.1);
+  }
+  .search-bar i {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-600);
+    pointer-events: none;
+  }
+  
+  /* ========== MODAL ========== */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s;
+  }
+  .modal.active { display: flex; align-items: center; justify-content: center; }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .modal-close {
+    background: var(--gray-100);
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-close:hover {
+    background: var(--gray-200);
+    transform: rotate(90deg);
+  }
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--bleu-nuit);
+    font-size: 0.9rem;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(244,63,94,0.1);
+  }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  body.dark-mode .form-group label {
+    color: #e2e8f0;
+  }
+  body.dark-mode .form-group input,
+  body.dark-mode .form-group select,
+  body.dark-mode .form-group textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+  
+  /* ========== WIDGET MÉTÉO ========== */
+  .weather-widget {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 28px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+  }
+  .weather-widget::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+  }
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .weather-current {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .weather-temp-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .weather-icon {
+    font-size: 4rem;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  .temp-main {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .temp-unit {
+    font-size: 1.2rem;
+    font-weight: 400;
+    opacity: 0.8;
+  }
+  .weather-details {
+    text-align: right;
+  }
+  .weather-location {
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .weather-location i {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+  .weather-desc {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+    text-transform: capitalize;
+  }
+  .weather-feels {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+  }
+  .weather-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    position: relative;
+    z-index: 1;
+  }
+  .weather-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .weather-stat i {
+    font-size: 1.1rem;
+    opacity: 0.8;
+  }
+  .forecast-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    position: relative;
+    z-index: 1;
+  }
+  .forecast-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-bottom: 1rem;
+  }
+  .forecast-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 1rem;
+  }
+  .forecast-item {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 0.8rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .forecast-item:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-3px);
+  }
+  .forecast-day {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .forecast-icon {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  .forecast-temp {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .forecast-temp-min {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-left: 4px;
+  }
+  .weather-alert {
+    background: rgba(255,193,7,0.2);
+    border-left: 3px solid #ffc107;
+    padding: 0.75rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+  .stat-value { font-size: 2rem; font-weight: 700; color: var(--bleu-nuit); }
+  body.dark-mode .stat-value { color: #e2e8f0; }
+  .stat-icon {
+    width: 55px;
+    height: 55px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .stat-icon.rose { background: var(--rose-light); color: var(--rose); }
+  .stat-icon.violet { background: var(--violet-light); color: var(--violet); }
+  .stat-icon.bleu-clair { background: var(--bleu-clair-light); color: var(--bleu-clair); }
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: linear-gradient(135deg, var(--rose), var(--violet)); color: white; }
+  .btn-primary:hover { box-shadow: 0 5px 15px rgba(244,63,94,0.3); }
+  .btn-outline { background: transparent; border: 2px solid var(--gray-200); }
+  .btn-outline:hover { background: var(--gray-50); }
+  body.dark-mode .btn-outline { border-color: #334155; }
+  body.dark-mode .btn-outline:hover { background: #334155; }
+  .btn-success { background: #10b981; color: white; }
+  .btn-success:hover { background: #059669; }
+  
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; padding: 12px 8px; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); font-weight: 600; }
+  td { padding: 12px 8px; border-bottom: 1px solid var(--gray-100); }
+  body.dark-mode th { color: #94a3b8; border-bottom-color: #334155; }
+  body.dark-mode td { border-bottom-color: #334155; }
+  tr:hover { background: var(--gray-50); }
+  body.dark-mode tr:hover { background: #334155; }
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-warning { background: #fff7ed; color: #9a3412; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-info { background: #dbeafe; color: #1e40af; }
+  
+  .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); background: white; border-radius: 20px; overflow: hidden; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; background: var(--gray-50); }
+  body.dark-mode .chat-messages { background: #0f172a; }
+  .message { margin-bottom: 1rem; display: flex; }
+  .message.user { justify-content: flex-end; }
+  .message.bot { justify-content: flex-start; }
+  .message-bubble {
+    max-width: 70%;
+    padding: 12px 18px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  .message.user .message-bubble {
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    color: white;
+  }
+  .message.bot .message-bubble {
+    background: white;
+    border: 1px solid var(--gray-200);
+  }
+  body.dark-mode .message.bot .message-bubble {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .suggestion-chip {
+    display: inline-block;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    margin: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+  }
+  .suggestion-chip:hover {
+    background: var(--rose);
+    color: white;
+    border-color: var(--rose);
+    transform: translateY(-2px);
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-600);
+  }
+  .empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); position: fixed; }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; padding: 1rem; }
+    .menu-toggle { display: block; position: fixed; top: 1rem; left: 1rem; z-index: 1001; background: var(--bleu-nuit); color: white; border: none; border-radius: 10px; padding: 10px; cursor: pointer; }
+    .forecast-items { grid-template-columns: repeat(3, 1fr); }
+    .top-bar { padding: 1rem; }
+    .modal-content { width: 95%; padding: 1.5rem; }
+  }
+  @media (min-width: 769px) { .menu-toggle { display: none; } }
+  
+  .loading-dots { display: inline-flex; gap: 4px; }
+  .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: bounce 1.4s infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+  .chart-container { max-height: 300px; margin-top: 1rem; }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  .btn-icon {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<button class="menu-toggle" id="menuToggle">☰</button>
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-bus"></i></div>
+      <div class="logo-text">
+        <h2>TranspoBot Pro</h2>
+        <p>Gestion IA · Transport intelligent</p>
+      </div>
+    </div>
+    <div class="nav-menu">
+      <div class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i><span>Tableau de bord</span></div>
+      <div class="nav-item" data-page="vehicules"><i class="fas fa-truck"></i><span>Véhicules</span></div>
+      <div class="nav-item" data-page="chauffeurs"><i class="fas fa-users"></i><span>Chauffeurs</span></div>
+      <div class="nav-item" data-page="trajets"><i class="fas fa-map-marked-alt"></i><span>Trajets</span></div>
+      <div class="nav-item" data-page="incidents"><i class="fas fa-exclamation-triangle"></i><span>Incidents</span></div>
+      <div class="nav-item" data-page="statistiques"><i class="fas fa-chart-pie"></i><span>Statistiques</span></div>
+      <div class="nav-item" data-page="chat"><i class="fas fa-comment-dots"></i><span>Assistant IA</span></div>
+    </div>
+  </div>
+  <div class="main-content" id="mainContent"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="modalVehicule">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-truck"></i> <span id="modalVehiculeTitle">Ajouter un véhicule</span></h2>
+      <button class="modal-close" onclick="closeModal('modalVehicule')">&times;</button>
+    </div>
+    <form id="formVehicule" onsubmit="submitVehicule(event)">
+      <div class="form-group">
+        <label>Immatriculation *</label>
+        <input type="text" name="immatriculation" placeholder="Ex: DK-1234-AB" required>
+      </div>
+      <div class="form-group">
+        <label>Type de véhicule *</label>
+        <select name="type" required>
+          <option value="">Sélectionner...</option>
+          <option value="bus">Bus</option>
+          <option value="minibus">Minibus</option>
+          <option value="taxi">Taxi</option>
+          <option value="voiture">Voiture</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Capacité (nombre de places) *</label>
+        <input type="number" name="capacite" min="1" placeholder="Ex: 60" required>
+      </div>
+      <div class="form-group">
+        <label>Statut *</label>
+        <select name="statut" required>
+          <option value="actif">Actif</option>
+          <option value="maintenance">En maintenance</option>
+          <option value="hors_service">Hors service</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Kilométrage *</label>
+        <input type="number" name="kilometrage" min="0" placeholder="Ex: 45000" required>
+      </div>
+      <div class="action-buttons">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
+        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalChauffeur">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-user"></i> <span id="modalChauffeurTitle">Ajouter un chauffeur</span></h2>
+      <button class="modal-close" onclick="closeModal('modalChauffeur')">&times;</button>
+    </div>
+    <form id="formChauffeur" onsubmit="submitChauffeur(event)">
+      <div class="form-group">
+        <label>Nom *</label>
+        <input type="text" name="nom" placeholder="Ex: DIOP" required>
+      </div>
+      <div class="form-group">
+        <label>Prénom *</label>
+        <input type="text" name="prenom" placeholder="Ex: Mamadou" required>
+      </div>
+      <div class="form-group">
+        <label>Téléphone *</label>
+        <input type="tel" name="telephone" placeholder="Ex: +221771234567" required>
+      </div>
+      <div class="form-group">
+        <label>Catégorie de permis *</label>
+        <select name="categorie_permis" required>
+          <option value="">Sélectionner...</option>
+          <option value="B">B (Voiture)</option>
+          <option value="C">C (Poids lourd)</option>
+          <option value="D">D (Transport en commun)</option>
+          <option value="E">E (Remorque)</option>
+        </select>
+      </div>
+      <div class="action-buttons">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalChauffeur')">Annuler</button>
+        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalTrajet">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-map-marked-alt"></i> <span id="modalTrajetTitle">Ajouter un trajet</span></h2>
+      <button class="modal-close" onclick="closeModal('modalTrajet')">&times;</button>
+    </div>
+    <form id="formTrajet" onsubmit="submitTrajet(event)">
+      <div class="form-group">
+        <label>Ligne *</label>
+        <input type="text" name="ligne" placeholder="Ex: Dakar-Thiès" required>
+      </div>
+      <div class="form-group">
+        <label>Chauffeur *</label>
+        <select name="chauffeur" required id="selectChauffeur">
+          <option value="">Sélectionner...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" name="date" required>
+      </div>
+      <div class="form-group">
+        <label>Statut *</label>
+        <select name="statut" required>
+          <option value="planifie">Planifié</option>
+          <option value="en_cours">En cours</option>
+          <option value="termine">Terminé</option>
+          <option value="annule">Annulé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre de passagers *</label>
+        <input type="number" name="passagers" min="0" placeholder="Ex: 55" required>
+      </div>
+      <div class="action-buttons">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalTrajet')">Annuler</button>
+        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalIncident">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-exclamation-triangle"></i> <span id="modalIncidentTitle">Signaler un incident</span></h2>
+      <button class="modal-close" onclick="closeModal('modalIncident')">&times;</button>
+    </div>
+    <form id="formIncident" onsubmit="submitIncident(event)">
+      <div class="form-group">
+        <label>Type d'incident *</label>
+        <select name="type" required>
+          <option value="">Sélectionner...</option>
+          <option value="retard">Retard</option>
+          <option value="panne">Panne mécanique</option>
+          <option value="accident">Accident</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea name="description" placeholder="Décrivez l'incident..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Gravité *</label>
+        <select name="gravite" required>
+          <option value="">Sélectionner...</option>
+          <option value="faible">Faible</option>
+          <option value="moyen">Moyen</option>
+          <option value="grave">Grave</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" name="date" required>
+      </div>
+      <div class="action-buttons">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalIncident')">Annuler</button>
+        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Signaler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// DONNÉES
+const REAL_DATA = {
+  vehicules: [
+    { id: 1, immatriculation: "DK-1234-AB", type: "bus", capacite: 60, statut: "actif", kilometrage: 45000 },
+    { id: 2, immatriculation: "DK-5678-CD", type: "minibus", capacite: 25, statut: "actif", kilometrage: 32000 },
+    { id: 3, immatriculation: "DK-9012-EF", type: "bus", capacite: 60, statut: "maintenance", kilometrage: 78000 },
+    { id: 4, immatriculation: "DK-3456-GH", type: "taxi", capacite: 5, statut: "actif", kilometrage: 120000 },
+    { id: 5, immatriculation: "DK-7890-IJ", type: "minibus", capacite: 25, statut: "actif", kilometrage: 15000 }
+  ],
+  chauffeurs: [
+    { id: 1, nom: "DIOP", prenom: "Mamadou", telephone: "+221771234567", categorie_permis: "D", trajets: 2 },
+    { id: 2, nom: "FALL", prenom: "Ibrahima", telephone: "+221772345678", categorie_permis: "D", trajets: 2 },
+    { id: 3, nom: "NDIAYE", prenom: "Fatou", telephone: "+221773456789", categorie_permis: "B", trajets: 1 },
+    { id: 4, nom: "SECK", prenom: "Ousmane", telephone: "+221774567890", categorie_permis: "D", trajets: 1 },
+    { id: 5, nom: "BA", prenom: "Aminata", telephone: "+221775678901", categorie_permis: "D", trajets: 1 }
+  ],
+  trajets: [
+    { id: 1, ligne: "Dakar-Thiès", chauffeur: "DIOP Mamadou", date: "2026-03-01", statut: "termine", passagers: 55 },
+    { id: 2, ligne: "Dakar-Thiès", chauffeur: "FALL Ibrahima", date: "2026-03-01", statut: "termine", passagers: 20 },
+    { id: 3, ligne: "Dakar-Mbour", chauffeur: "NDIAYE Fatou", date: "2026-03-02", statut: "termine", passagers: 4 },
+    { id: 4, ligne: "Centre-Banlieue", chauffeur: "SECK Ousmane", date: "2026-03-05", statut: "termine", passagers: 22 },
+    { id: 5, ligne: "Dakar-Thiès", chauffeur: "DIOP Mamadou", date: "2026-03-10", statut: "termine", passagers: 58 },
+    { id: 6, ligne: "Aéroport", chauffeur: "FALL Ibrahima", date: "2026-03-12", statut: "termine", passagers: 18 },
+    { id: 7, ligne: "Dakar-Thiès", chauffeur: "BA Aminata", date: "2026-03-20", statut: "en_cours", passagers: 45 }
+  ],
+  incidents: [
+    { id: 1, type: "retard", description: "Embouteillage", gravite: "faible", date: "2026-03-01", resolu: true },
+    { id: 2, type: "panne", description: "Crevaison", gravite: "moyen", date: "2026-03-02", resolu: true },
+    { id: 3, type: "accident", description: "Accrochage", gravite: "grave", date: "2026-03-12", resolu: false }
+  ],
+  getStats: function() {
+    return {
+      trajets_termines: this.trajets.filter(t => t.statut === 'termine').length,
+      trajets_en_cours: this.trajets.filter(t => t.statut === 'en_cours').length,
+      vehicules_actifs: this.vehicules.filter(v => v.statut === 'actif').length,
+      incidents_ouverts: this.incidents.filter(i => !i.resolu).length,
+      total_passagers: this.trajets.reduce((sum, t) => sum + t.passagers, 0)
+    };
+  },
+  nextId: function(category) {
+    return Math.max(...this[category].map(item => item.id), 0) + 1;
+  }
+};
+
+// Données météo
+const WEATHER_DATA = {
+  dakar: {
+    current: { temp: 32, feels_like: 34, humidity: 65, wind: 12, pressure: 1012, description: "ensoleillé", icon: "fa-sun", condition: "clear" },
+    forecast: [
+      { day: "Lun", temp_max: 31, temp_min: 26, icon: "fa-sun", description: "Ensoleillé" },
+      { day: "Mar", temp_max: 30, temp_min: 25, icon: "fa-cloud-sun", description: "Peu nuageux" },
+      { day: "Mer", temp_max: 29, temp_min: 24, icon: "fa-cloud-rain", description: "Pluie légère" },
+      { day: "Jeu", temp_max: 28, temp_min: 24, icon: "fa-cloud-showers-heavy", description: "Averses" },
+      { day: "Ven", temp_max: 30, temp_min: 25, icon: "fa-sun", description: "Retour du soleil" }
+    ]
+  },
+  thiès: {
+    current: { temp: 30, feels_like: 32, humidity: 58, wind: 10, pressure: 1013, description: "ensoleillé", icon: "fa-sun", condition: "clear" },
+    forecast: [
+      { day: "Lun", temp_max: 29, temp_min: 24, icon: "fa-sun", description: "Ensoleillé" },
+      { day: "Mar", temp_max: 28, temp_min: 23, icon: "fa-cloud-sun", description: "Peu nuageux" },
+      { day: "Mer", temp_max: 27, temp_min: 22, icon: "fa-cloud", description: "Nuageux" },
+      { day: "Jeu", temp_max: 28, temp_min: 23, icon: "fa-sun", description: "Ensoleillé" },
+      { day: "Ven", temp_max: 29, temp_min: 24, icon: "fa-sun", description: "Ensoleillé" }
+    ]
+  },
+  mbour: {
+    current: { temp: 31, feels_like: 33, humidity: 70, wind: 15, pressure: 1011, description: "venteux", icon: "fa-wind", condition: "windy" },
+    forecast: [
+      { day: "Lun", temp_max: 30, temp_min: 26, icon: "fa-wind", description: "Venteux" },
+      { day: "Mar", temp_max: 29, temp_min: 25, icon: "fa-cloud-sun", description: "Peu nuageux" },
+      { day: "Mer", temp_max: 28, temp_min: 24, icon: "fa-cloud-rain", description: "Pluie" },
+      { day: "Jeu", temp_max: 29, temp_min: 25, icon: "fa-sun", description: "Soleil" },
+      { day: "Ven", temp_max: 31, temp_min: 26, icon: "fa-sun", description: "Ensoleillé" }
+    ]
+  }
+};
+
+let currentCity = "dakar";
+let chartInstance = null;
+let currentPage = 'dashboard';
+let currentSearchTerm = '';
+
+// FONCTIONS UTILITAIRES
+function showNotification(message, type = 'info') {
+  const notif = document.createElement('div');
+  notif.className = 'notification';
+  notif.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0f172a;color:white;padding:12px 20px;border-radius:10px;z-index:1000;animation:slideIn 0.3s ease;box-shadow:0 10px 25px rgba(0,0,0,0.3)';
+  notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 3000);
+}
+
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+  const form = document.getElementById(modalId.replace('modal', 'form'));
+  if (form) form.reset();
+}
+
+function changeCity(city) {
+  currentCity = city;
+  renderWeatherWidget();
+  showNotification(`Météo chargée pour ${city === 'dakar' ? 'Dakar' : city === 'thiès' ? 'Thiès' : 'Mbour'}`, 'success');
+}
+
+// GESTION DES FORMULAIRES
+function submitVehicule(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const newVehicule = {
+    id: REAL_DATA.nextId('vehicules'),
+    immatriculation: formData.get('immatriculation'),
+    type: formData.get('type'),
+    capacite: parseInt(formData.get('capacite')),
+    statut: formData.get('statut'),
+    kilometrage: parseInt(formData.get('kilometrage'))
+  };
+  
+  REAL_DATA.vehicules.push(newVehicule);
+  closeModal('modalVehicule');
+  showNotification('Véhicule ajouté avec succès !', 'success');
+  loadPage('vehicules');
+}
+
+function submitChauffeur(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const newChauffeur = {
+    id: REAL_DATA.nextId('chauffeurs'),
+    nom: formData.get('nom').toUpperCase(),
+    prenom: formData.get('prenom'),
+    telephone: formData.get('telephone'),
+    categorie_permis: formData.get('categorie_permis'),
+    trajets: 0
+  };
+  
+  REAL_DATA.chauffeurs.push(newChauffeur);
+  closeModal('modalChauffeur');
+  showNotification('Chauffeur ajouté avec succès !', 'success');
+  loadPage('chauffeurs');
+}
+
+function submitTrajet(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const newTrajet = {
+    id: REAL_DATA.nextId('trajets'),
+    ligne: formData.get('ligne'),
+    chauffeur: formData.get('chauffeur'),
+    date: formData.get('date'),
+    statut: formData.get('statut'),
+    passagers: parseInt(formData.get('passagers'))
+  };
+  
+  REAL_DATA.trajets.push(newTrajet);
+  
+  // Mettre à jour le compteur de trajets du chauffeur
+  const chauffeur = REAL_DATA.chauffeurs.find(c => `${c.nom} ${c.prenom}` === newTrajet.chauffeur);
+  if (chauffeur) chauffeur.trajets++;
+  
+  closeModal('modalTrajet');
+  showNotification('Trajet ajouté avec succès !', 'success');
+  loadPage('trajets');
+}
+
+function submitIncident(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const newIncident = {
+    id: REAL_DATA.nextId('incidents'),
+    type: formData.get('type'),
+    description: formData.get('description'),
+    gravite: formData.get('gravite'),
+    date: formData.get('date'),
+    resolu: false
+  };
+  
+  REAL_DATA.incidents.push(newIncident);
+  closeModal('modalIncident');
+  showNotification('Incident signalé avec succès !', 'success');
+  loadPage('incidents');
+}
+
+// GESTION DE LA RECHERCHE
+function filterData(data, searchTerm, fields) {
+  if (!searchTerm) return data;
+  const term = searchTerm.toLowerCase();
+  return data.filter(item => {
+    return fields.some(field => {
+      const value = item[field];
+      if (value === null || value === undefined) return false;
+      return value.toString().toLowerCase().includes(term);
+    });
+  });
+}
+
+function handleSearch(event, page) {
+  currentSearchTerm = event.target.value;
+  loadPage(page);
+}
+
+// RENDU DE LA MÉTÉO
+function renderWeatherWidget() {
+  const data = WEATHER_DATA[currentCity];
+  const cityName = currentCity === 'dakar' ? 'Dakar' : currentCity === 'thiès' ? 'Thiès' : 'Mbour';
+  
+  let gradientClass = '';
+  if (data.current.condition === 'clear') gradientClass = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+  else if (data.current.condition === 'windy') gradientClass = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)';
+  else gradientClass = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  
+  const widget = document.getElementById('weatherWidget');
+  if (!widget) return;
+  
+  widget.style.background = gradientClass;
+  
+  widget.innerHTML = `
+    <div class="weather-current">
+      <div class="weather-temp-section">
+        <div class="weather-icon"><i class="fas ${data.current.icon}"></i></div>
+        <div>
+          <div class="temp-main">${data.current.temp}<span class="temp-unit">°C</span></div>
+          <div class="weather-feels">Ressenti ${data.current.feels_like}°C</div>
+        </div>
+      </div>
+      <div class="weather-details">
+        <div class="weather-location">
+          <i class="fas fa-map-marker-alt"></i> ${cityName}
+          <select onchange="changeCity(this.value)" style="background:rgba(255,255,255,0.2);border:none;border-radius:20px;padding:4px 8px;color:white;cursor:pointer;margin-left:8px">
+            <option value="dakar" ${currentCity === 'dakar' ? 'selected' : ''}>Dakar</option>
+            <option value="thiès" ${currentCity === 'thiès' ? 'selected' : ''}>Thiès</option>
+            <option value="mbour" ${currentCity === 'mbour' ? 'selected' : ''}>Mbour</option>
+          </select>
+        </div>
+        <div class="weather-desc">${data.current.description}</div>
+      </div>
+    </div>
+    <div class="weather-stats">
+      <div class="weather-stat"><i class="fas fa-tint"></i> Humidité: ${data.current.humidity}%</div>
+      <div class="weather-stat"><i class="fas fa-wind"></i> Vent: ${data.current.wind} km/h</div>
+      <div class="weather-stat"><i class="fas fa-compress-alt"></i> Pression: ${data.current.pressure} hPa</div>
+    </div>
+    <div class="forecast-container">
+      <div class="forecast-title"><i class="fas fa-calendar-week"></i> Prévisions 5 jours</div>
+      <div class="forecast-items">
+        ${data.forecast.map(f => `
+          <div class="forecast-item" onclick="showNotification('Prévisions pour ${f.day}: ${f.description}, max ${f.temp_max}°C')">
+            <div class="forecast-day">${f.day}</div>
+            <div class="forecast-icon"><i class="fas ${f.icon}"></i></div>
+            <div class="forecast-temp">${f.temp_max}°<span class="forecast-temp-min">${f.temp_min}°</span></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${data.current.temp > 35 ? `
+      <div class="weather-alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        ⚠️ Alerte canicule ! Température élevée. Prévoyez de l'eau pour les chauffeurs et vérifiez la climatisation des véhicules.
+      </div>
+    ` : data.current.condition === 'windy' ? `
+      <div class="weather-alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        💨 Vent fort signalé. Soyez prudents sur les axes dégagés, ralentir aux abords des zones sensibles.
+      </div>
+    ` : data.forecast.some(f => f.icon === 'fa-cloud-rain') ? `
+      <div class="weather-alert">
+        <i class="fas fa-umbrella"></i>
+        ☔ Risque de pluie dans les prochains jours. Vérifiez l'état des essuie-glaces et prévoyez des trajets adaptés.
+      </div>
+    ` : `
+      <div class="weather-alert" style="background:rgba(255,255,255,0.1);border-left-color:#fff">
+        <i class="fas fa-check-circle"></i>
+        ✅ Conditions météo favorables pour les transports aujourd'hui. Bonne circulation attendue.
+      </div>
+    `}
+  `;
+}
+
+// RENDU DES PAGES
+function renderDashboard() {
+  return `
+    <div class="top-bar">
+      <div class="page-title"><h1><i class="fas fa-chart-line"></i> Tableau de bord</h1><p>Vue d'ensemble avec météo en temps réel</p></div>
+      <div style="display:flex;gap:10px">
+        <button class="theme-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+        <button class="btn btn-outline" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+      </div>
+    </div>
+    <div class="weather-widget" id="weatherWidget"></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-chart-line"></i> Évolution des trajets (7 derniers jours)</h2>
+        <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.trajets, 'trajets.csv')"><i class="fas fa-download"></i> CSV</button>
+      </div>
+      <div class="chart-container"><canvas id="trajetsChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-clock"></i> Trajets récents</h2>
+        <button class="btn btn-primary" onclick="navigateTo('trajets')">Voir tout</button>
+      </div>
+      <div id="recentTrajets"></div>
+    </div>
+  `;
+}
+
+function renderTable(data, columns) {
+  if (!data || !data.length) {
+    return '<div class="empty-state"><i class="fas fa-inbox"></i><p>Aucune donnée disponible</p></div>';
+  }
+  
+  const labels = { 
+    immatriculation: 'Immatriculation', type: 'Type', capacite: 'Capacité', statut: 'Statut', 
+    kilometrage: 'Km', nom: 'Nom', prenom: 'Prénom', telephone: 'Téléphone', 
+    categorie_permis: 'Permis', trajets: 'Trajets', ligne: 'Ligne', chauffeur: 'Chauffeur', 
+    date: 'Date', passagers: 'Passagers', description: 'Description', gravite: 'Gravité', resolu: 'Résolu' 
+  };
+  
+  return `
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>${columns.map(c => `<th>${labels[c] || c}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          ${data.map(row => `
+            <tr>
+              ${columns.map(c => {
+                let val = row[c] ?? '—';
+                if (c === 'statut') {
+                  const badgeClass = val === 'actif' || val === 'termine' ? 'badge-success' : 
+                                    val === 'maintenance' || val === 'en_cours' || val === 'planifie' ? 'badge-warning' : 
+                                    'badge-danger';
+                  return `<td><span class="badge ${badgeClass}">${val}</span></td>`;
+                }
+                if (c === 'gravite') {
+                  const badgeClass = val === 'grave' ? 'badge-danger' : val === 'moyen' ? 'badge-warning' : 'badge-info';
+                  return `<td><span class="badge ${badgeClass}">${val}</span></td>`;
+                }
+                if (c === 'resolu') {
+                  return `<td><span class="badge ${val ? 'badge-success' : 'badge-warning'}">${val ? 'Oui' : 'Non'}</span></td>`;
+                }
+                return `<td>${val}</td>`;
+              }).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderDashboardData() {
+  const stats = REAL_DATA.getStats();
+  const statsGrid = document.getElementById('statsGrid');
+  statsGrid.innerHTML = `
+    <div class="stat-card" onclick="navigateTo('trajets')">
+      <div class="stat-info">
+        <h3>Trajets terminés</h3>
+        <div class="stat-value">${stats.trajets_termines}</div>
+      </div>
+      <div class="stat-icon rose"><i class="fas fa-check-circle"></i></div>
+    </div>
+    <div class="stat-card" onclick="navigateTo('trajets')">
+      <div class="stat-info">
+        <h3>En cours</h3>
+        <div class="stat-value">${stats.trajets_en_cours}</div>
+      </div>
+      <div class="stat-icon violet"><i class="fas fa-play-circle"></i></div>
+    </div>
+    <div class="stat-card" onclick="navigateTo('vehicules')">
+      <div class="stat-info">
+        <h3>Véhicules actifs</h3>
+        <div class="stat-value">${stats.vehicules_actifs}</div>
+      </div>
+      <div class="stat-icon bleu-clair"><i class="fas fa-bus"></i></div>
+    </div>
+    <div class="stat-card" onclick="navigateTo('incidents')">
+      <div class="stat-info">
+        <h3>Incidents non résolus</h3>
+        <div class="stat-value">${stats.incidents_ouverts}</div>
+      </div>
+      <div class="stat-icon rose"><i class="fas fa-bell"></i></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-info">
+        <h3>Total passagers</h3>
+        <div class="stat-value">${stats.total_passagers}</div>
+      </div>
+      <div class="stat-icon violet"><i class="fas fa-users"></i></div>
+    </div>
+  `;
+  document.getElementById('recentTrajets').innerHTML = renderTable(REAL_DATA.trajets.slice(0, 5), ['ligne', 'chauffeur', 'date', 'statut', 'passagers']);
+}
+
+function renderChart() {
+  const ctx = document.getElementById('trajetsChart')?.getContext('2d');
+  if (ctx && chartInstance) chartInstance.destroy();
+  if (ctx) {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { 
+        labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], 
+        datasets: [{ 
+          label: 'Trajets', 
+          data: [5, 7, 6, 8, 5, 7, 6], 
+          borderColor: '#f43f5e', 
+          backgroundColor: 'rgba(244,63,94,0.1)', 
+          tension: 0.4, 
+          fill: true 
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: true, 
+        plugins: { legend: { position: 'top' } } 
+      }
+    });
+  }
+}
+
+function populateChauffeurSelect() {
+  const select = document.getElementById('selectChauffeur');
+  if (select) {
+    select.innerHTML = '<option value="">Sélectionner...</option>' +
+      REAL_DATA.chauffeurs.map(c => `<option value="${c.nom} ${c.prenom}">${c.nom} ${c.prenom}</option>`).join('');
+  }
+}
+
+function loadPage(page) {
+  const container = document.getElementById('mainContent');
+  currentSearchTerm = '';
+  
+  switch(page) {
+    case 'dashboard':
+      container.innerHTML = renderDashboard();
+      renderDashboardData();
+      renderWeatherWidget();
+      renderChart();
+      break;
+      
+    case 'vehicules':
+      const filteredVehicules = filterData(REAL_DATA.vehicules, currentSearchTerm, ['immatriculation', 'type', 'statut']);
+      container.innerHTML = `
+        <div class="top-bar">
+          <div class="page-title">
+            <h1><i class="fas fa-truck"></i> Véhicules</h1>
+            <p>Gestion de la flotte (${REAL_DATA.vehicules.length} véhicules)</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="openModal('modalVehicule')">
+              <i class="fas fa-plus"></i> Ajouter
+            </button>
+            <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.vehicules, 'vehicules.csv')">
+              <i class="fas fa-download"></i> CSV
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="search-bar">
+            <input type="text" placeholder="🔍 Rechercher par immatriculation, type ou statut..." 
+              oninput="handleSearch(event, 'vehicules')" value="${currentSearchTerm}">
+            <i class="fas fa-search"></i>
+          </div>
+          <div id="vehiculesList"></div>
+        </div>
+      `;
+      document.getElementById('vehiculesList').innerHTML = renderTable(filteredVehicules, ['immatriculation', 'type', 'capacite', 'statut', 'kilometrage']);
+      break;
+      
+    case 'chauffeurs':
+      const filteredChauffeurs = filterData(REAL_DATA.chauffeurs, currentSearchTerm, ['nom', 'prenom', 'telephone', 'categorie_permis']);
+      container.innerHTML = `
+        <div class="top-bar">
+          <div class="page-title">
+            <h1><i class="fas fa-users"></i> Chauffeurs</h1>
+            <p>Performance des conducteurs (${REAL_DATA.chauffeurs.length} chauffeurs)</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="openModal('modalChauffeur')">
+              <i class="fas fa-plus"></i> Ajouter
+            </button>
+            <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.chauffeurs, 'chauffeurs.csv')">
+              <i class="fas fa-download"></i> CSV
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="search-bar">
+            <input type="text" placeholder="🔍 Rechercher par nom, prénom ou téléphone..." 
+              oninput="handleSearch(event, 'chauffeurs')" value="${currentSearchTerm}">
+            <i class="fas fa-search"></i>
+          </div>
+          <div id="chauffeursList"></div>
+        </div>
+      `;
+      document.getElementById('chauffeursList').innerHTML = renderTable(filteredChauffeurs, ['nom', 'prenom', 'telephone', 'categorie_permis', 'trajets']);
+      break;
+      
+    case 'trajets':
+      const filteredTrajets = filterData(REAL_DATA.trajets, currentSearchTerm, ['ligne', 'chauffeur', 'date', 'statut']);
+      container.innerHTML = `
+        <div class="top-bar">
+          <div class="page-title">
+            <h1><i class="fas fa-map-marked-alt"></i> Trajets</h1>
+            <p>Historique complet (${REAL_DATA.trajets.length} trajets)</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="openModal('modalTrajet'); populateChauffeurSelect()">
+              <i class="fas fa-plus"></i> Ajouter
+            </button>
+            <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.trajets, 'trajets.csv')">
+              <i class="fas fa-download"></i> CSV
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="search-bar">
+            <input type="text" placeholder="🔍 Rechercher par ligne, chauffeur ou date..." 
+              oninput="handleSearch(event, 'trajets')" value="${currentSearchTerm}">
+            <i class="fas fa-search"></i>
+          </div>
+          <div id="trajetsList"></div>
+        </div>
+      `;
+      document.getElementById('trajetsList').innerHTML = renderTable(filteredTrajets, ['ligne', 'chauffeur', 'date', 'statut', 'passagers']);
+      break;
+      
+    case 'incidents':
+      const filteredIncidents = filterData(REAL_DATA.incidents, currentSearchTerm, ['type', 'description', 'gravite', 'date']);
+      container.innerHTML = `
+        <div class="top-bar">
+          <div class="page-title">
+            <h1><i class="fas fa-exclamation-triangle"></i> Incidents</h1>
+            <p>Suivi sécurité (${REAL_DATA.incidents.length} incidents)</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="openModal('modalIncident')">
+              <i class="fas fa-plus"></i> Signaler
+            </button>
+            <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.incidents, 'incidents.csv')">
+              <i class="fas fa-download"></i> CSV
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="search-bar">
+            <input type="text" placeholder="🔍 Rechercher par type, description ou gravité..." 
+              oninput="handleSearch(event, 'incidents')" value="${currentSearchTerm}">
+            <i class="fas fa-search"></i>
+          </div>
+          <div id="incidentsList"></div>
+        </div>
+      `;
+      document.getElementById('incidentsList').innerHTML = renderTable(filteredIncidents, ['type', 'description', 'gravite', 'date', 'resolu']);
+      break;
+      
+    case 'statistiques':
+      container.innerHTML = renderStatistiquesPage();
+      renderStatistiquesCharts();
+      break;
+      
+    case 'chat':
+      container.innerHTML = renderChatPage();
+      break;
+  }
+}
+
+function renderStatistiquesPage() {
+  return `
+    <div class="top-bar">
+      <div class="page-title">
+        <h1><i class="fas fa-chart-pie"></i> Statistiques avancées</h1>
+        <p>Analyses et KPIs détaillés</p>
+      </div>
+      <div>
+        <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.trajets, 'stats_trajets.csv')">
+          <i class="fas fa-download"></i> Exporter
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-chart-bar"></i> Répartition par ligne</h2>
+      </div>
+      <div class="chart-container"><canvas id="lignesChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-chart-pie"></i> Performance chauffeurs</h2>
+      </div>
+      <div class="chart-container"><canvas id="chauffeursChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-chart-line"></i> Passagers par trajet</h2>
+      </div>
+      <div class="chart-container"><canvas id="passagersChart"></canvas></div>
+    </div>
+  `;
+}
+
+function renderStatistiquesCharts() {
+  const lignesData = {};
+  REAL_DATA.trajets.forEach(t => {
+    lignesData[t.ligne] = (lignesData[t.ligne] || 0) + 1;
+  });
+  
+  const chauffeursData = {};
+  REAL_DATA.chauffeurs.forEach(c => {
+    chauffeursData[`${c.nom} ${c.prenom}`] = c.trajets;
+  });
+  
+  const passagersData = REAL_DATA.trajets.map(t => t.passagers);
+  
+  new Chart(document.getElementById('lignesChart'), { 
+    type: 'bar', 
+    data: { 
+      labels: Object.keys(lignesData), 
+      datasets: [{ 
+        label: 'Nombre de trajets', 
+        data: Object.values(lignesData), 
+        backgroundColor: '#f43f5e' 
+      }] 
+    },
+    options: { responsive: true, maintainAspectRatio: true }
+  });
+  
+  new Chart(document.getElementById('chauffeursChart'), { 
+    type: 'pie', 
+    data: { 
+      labels: Object.keys(chauffeursData), 
+      datasets: [{ 
+        data: Object.values(chauffeursData), 
+        backgroundColor: ['#f43f5e', '#8b5cf6', '#38bdf8', '#f59e0b', '#10b981'] 
+      }] 
+    },
+    options: { responsive: true, maintainAspectRatio: true }
+  });
+  
+  new Chart(document.getElementById('passagersChart'), { 
+    type: 'line', 
+    data: { 
+      labels: REAL_DATA.trajets.map((_, i) => `Trajet ${i + 1}`), 
+      datasets: [{ 
+        label: 'Passagers', 
+        data: passagersData, 
+        borderColor: '#8b5cf6', 
+        backgroundColor: 'rgba(139,92,246,0.1)',
+        fill: true,
+        tension: 0.4
+      }] 
+    },
+    options: { responsive: true, maintainAspectRatio: true }
+  });
+}
+
+function renderChatPage() {
+  return `
+    <div class="top-bar">
+      <div class="page-title">
+        <h1><i class="fas fa-comment-dots"></i> Assistant IA TranspoBot Pro</h1>
+        <p>Intelligence artificielle - Questionnez vos données</p>
+      </div>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+          <div class="message-bubble">
+            👋 Bonjour ! Je suis <strong>TranspoBot Pro</strong>.<br><br>
+            💡 <strong>Fonctionnalités exclusives :</strong><br>
+            • 🌤️ Météo en temps réel avec prévisions<br>
+            • 📊 Graphiques interactifs<br>
+            • 🌓 Mode sombre<br>
+            • 📥 Export PDF/CSV<br>
+            • ➕ Ajout et recherche de données<br><br>
+            <strong>Exemples :</strong><br>
+            "Combien de trajets ?"<br>
+            "Meilleur chauffeur ?"<br>
+            "Véhicules en maintenance ?"
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area" style="padding:1rem;background:white;border-top:1px solid #e2e8f0">
+        <div class="suggestions" style="margin-bottom:1rem">
+          <span class="suggestion-chip" onclick="askQuestion('Combien de trajets cette semaine ?')">📊 Trajets</span>
+          <span class="suggestion-chip" onclick="askQuestion('Quel chauffeur a le plus de trajets ?')">🏆 Top chauffeur</span>
+          <span class="suggestion-chip" onclick="askQuestion('Quels véhicules sont en maintenance ?')">🔧 Maintenance</span>
+        </div>
+        <div style="display:flex;gap:10px">
+          <input type="text" id="chatInput" placeholder="Posez votre question..." 
+            onkeypress="if(event.key==='Enter') sendChatMessage()" 
+            style="flex:1;padding:12px;border:1px solid #e2e8f0;border-radius:25px">
+          <button class="btn btn-primary" onclick="sendChatMessage()">
+            <i class="fas fa-paper-plane"></i> Envoyer
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// FONCTIONS D'EXPORT
+function exportToPDF() {
+  const element = document.querySelector('.card');
+  if (element) {
+    html2pdf().from(element).set({ margin: 1, filename: 'transpobot_export.pdf' }).save();
+    showNotification('Export PDF en cours...', 'success');
+  }
+}
+
+function exportToCSV(data, filename) {
+  if (!data || !data.length) {
+    showNotification('Aucune donnée à exporter', 'error');
+    return;
+  }
+  const headers = Object.keys(data[0]).filter(h => h !== 'id');
+  const csvRows = [headers.join(',')];
+  for (const row of data) {
+    const values = headers.map(header => `"${(row[header] || '').toString().replace(/"/g, '""')}"`);
+    csvRows.push(values.join(','));
+  }
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showNotification('Export CSV effectué', 'success');
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  renderWeatherWidget();
+  showNotification('Mode ' + (document.body.classList.contains('dark-mode') ? 'sombre' : 'clair') + ' activé', 'success');
+}
+
+// CHAT IA
+function addChatMessage(role, text, sql = null) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `
+    <div class="message-bubble">
+      ${text.replace(/\n/g, '<br>')}
+      ${sql ? `<div style="background:#0f172a;color:#94a3b8;padding:8px;border-radius:8px;margin-top:8px;font-family:monospace;font-size:11px">${sql}</div>` : ''}
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+let currentChatLoading = false;
+
+function askQuestion(q) { 
+  document.getElementById('chatInput').value = q; 
+  sendChatMessage(); 
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const question = input.value.trim();
+  if (!question || currentChatLoading) return;
+  
+  input.value = '';
+  addChatMessage('user', question);
+  currentChatLoading = true;
+  
+  const loadingDiv = addChatMessage('bot', '<div class="loading-dots"><span></span><span></span><span></span></div>');
+  
+  setTimeout(() => {
+    loadingDiv.remove();
+    let answer = '', sql = '', data = null;
+    const q = question.toLowerCase();
+    
+    if (q.includes('trajet') && (q.includes('semaine') || q.includes('combien'))) {
+      const count = REAL_DATA.trajets.length;
+      answer = `📊 ${count} trajets ont été effectués au total. Conditions météo actuelles: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C.`;
+      sql = "SELECT COUNT(*) FROM trajets";
+      data = [{ 'Total trajets': count }];
+    } else if (q.includes('chauffeur') && (q.includes('plus') || q.includes('meilleur'))) {
+      const topChauffeurs = REAL_DATA.chauffeurs.sort((a, b) => b.trajets - a.trajets).slice(0, 3);
+      answer = `🏆 Top 3 des chauffeurs:\n${topChauffeurs.map((c, i) => `${i + 1}. ${c.nom} ${c.prenom} - ${c.trajets} trajets`).join('\n')}`;
+      sql = "SELECT nom, prenom, COUNT(*) as trajets FROM chauffeurs GROUP BY nom ORDER BY trajets DESC";
+      data = topChauffeurs.map(c => ({ 'Chauffeur': `${c.nom} ${c.prenom}`, 'Trajets': c.trajets }));
+    } else if (q.includes('maintenance') || q.includes('véhicule')) {
+      const vehiculesM = REAL_DATA.vehicules.filter(v => v.statut === 'maintenance');
+      answer = `🔧 ${vehiculesM.length} véhicule(s) en maintenance. Météo actuelle: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C - idéale pour les réparations.`;
+      sql = "SELECT * FROM vehicules WHERE statut='maintenance'";
+      data = vehiculesM.map(v => ({ 'Immatriculation': v.immatriculation, 'Type': v.type, 'Km': v.kilometrage }));
+    } else if (q.includes('incident')) {
+      const incidentsOuverts = REAL_DATA.incidents.filter(i => !i.resolu);
+      answer = `⚠️ ${incidentsOuverts.length} incident(s) non résolu(s) actuellement.`;
+      data = incidentsOuverts.map(i => ({ 'Type': i.type, 'Description': i.description, 'Gravité': i.gravite }));
+    } else if (q.includes('météo') || q.includes('meteo')) {
+      const meteo = WEATHER_DATA[currentCity].current;
+      answer = `🌤️ Météo à ${currentCity === 'dakar' ? 'Dakar' : currentCity === 'thiès' ? 'Thiès' : 'Mbour'}:\n• ${meteo.description}\n• ${meteo.temp}°C (ressenti ${meteo.feels_like}°C)\n• Humidité: ${meteo.humidity}%\n• Vent: ${meteo.wind} km/h`;
+    } else {
+      answer = `💡 Je peux répondre à vos questions sur:\n\n• Les trajets et chauffeurs\n• Les véhicules et leur maintenance\n• Les incidents\n• La météo en temps réel\n\n🌤️ Météo actuelle à ${currentCity === 'dakar' ? 'Dakar' : currentCity === 'thiès' ? 'Thiès' : 'Mbour'}: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C\n\nEssayez:\n• "Combien de trajets ?"\n• "Meilleur chauffeur ?"\n• "Véhicules en maintenance ?"\n• "Quelle est la météo ?"`;
+    }
+    
+    addChatMessage('bot', answer, sql);
+    
+    if (data && data.length > 0) {
+      const div = document.createElement('div');
+      div.className = 'message bot';
+      div.innerHTML = `<div class="message-bubble" style="padding:0;overflow-x:auto">${renderTable(data, Object.keys(data[0]))}</div>`;
+      document.getElementById('chatMessages').appendChild(div);
+    }
+    
+    currentChatLoading = false;
+    document.getElementById('chatInput').focus();
+  }, 800);
+}
+
+// NAVIGATION
+function navigateTo(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.dataset.page === page) item.classList.add('active');
+    else item.classList.remove('active');
+  });
+  loadPage(page);
+}
+
+// INITIALISATION
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => navigateTo(item.dataset.page));
+});
+
+document.getElementById('menuToggle')?.addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// Fermer les modals en cliquant à l'extérieur
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal(modal.id);
+    }
+  });
+});
+
+// Charger le mode sombre si activé
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+}
+
+// Charger la page d'accueil
+navigateTo('dashboard');
+</script>
+</body>
+</html>
