@@ -641,7 +641,6 @@
           <option value="bus">Bus</option>
           <option value="minibus">Minibus</option>
           <option value="taxi">Taxi</option>
-          <option value="voiture">Voiture</option>
         </select>
       </div>
       <div class="form-group">
@@ -714,7 +713,9 @@
     <form id="formTrajet" onsubmit="submitTrajet(event)">
       <div class="form-group">
         <label>Ligne *</label>
-        <input type="text" name="ligne" placeholder="Ex: Dakar-Thiès" required>
+        <select name="ligne" id="selectLigne" required>
+          <option value="">Sélectionner...</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Chauffeur *</label>
@@ -723,21 +724,22 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Date *</label>
-        <input type="date" name="date" required>
+        <label>Véhicule *</label>
+        <select name="vehicule" id="selectVehicule" required>
+          <option value="">Sélectionner...</option>
+        </select>
       </div>
       <div class="form-group">
-        <label>Statut *</label>
-        <select name="statut" required>
-          <option value="planifie">Planifié</option>
-          <option value="en_cours">En cours</option>
-          <option value="termine">Terminé</option>
-          <option value="annule">Annulé</option>
-        </select>
+        <label>Date et heure de départ *</label>
+        <input type="datetime-local" name="date" required>
       </div>
       <div class="form-group">
         <label>Nombre de passagers *</label>
         <input type="number" name="passagers" min="0" placeholder="Ex: 55" required>
+      </div>
+      <div class="form-group">
+        <label>Recette (optionnel)</label>
+        <input type="number" name="recette" min="0" step="0.01" placeholder="Ex: 137500">
       </div>
       <div class="action-buttons">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalTrajet')">Annuler</button>
@@ -754,6 +756,12 @@
       <button class="modal-close" onclick="closeModal('modalIncident')">&times;</button>
     </div>
     <form id="formIncident" onsubmit="submitIncident(event)">
+      <div class="form-group">
+        <label>Trajet *</label>
+        <select name="trajet" id="selectTrajet" required>
+          <option value="">Sélectionner...</option>
+        </select>
+      </div>
       <div class="form-group">
         <label>Type d'incident *</label>
         <select name="type" required>
@@ -778,8 +786,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Date *</label>
-        <input type="date" name="date" required>
+        <label>Date et heure *</label>
+        <input type="datetime-local" name="date" required>
       </div>
       <div class="action-buttons">
         <button type="button" class="btn btn-outline" onclick="closeModal('modalIncident')">Annuler</button>
@@ -790,47 +798,51 @@
 </div>
 
 <script>
-// DONNÉES
-const REAL_DATA = {
-  vehicules: [
-    { id: 1, immatriculation: "DK-1234-AB", type: "bus", capacite: 60, statut: "actif", kilometrage: 45000 },
-    { id: 2, immatriculation: "DK-5678-CD", type: "minibus", capacite: 25, statut: "actif", kilometrage: 32000 },
-    { id: 3, immatriculation: "DK-9012-EF", type: "bus", capacite: 60, statut: "maintenance", kilometrage: 78000 },
-    { id: 4, immatriculation: "DK-3456-GH", type: "taxi", capacite: 5, statut: "actif", kilometrage: 120000 },
-    { id: 5, immatriculation: "DK-7890-IJ", type: "minibus", capacite: 25, statut: "actif", kilometrage: 15000 }
-  ],
-  chauffeurs: [
-    { id: 1, nom: "DIOP", prenom: "Mamadou", telephone: "+221771234567", categorie_permis: "D", trajets: 2 },
-    { id: 2, nom: "FALL", prenom: "Ibrahima", telephone: "+221772345678", categorie_permis: "D", trajets: 2 },
-    { id: 3, nom: "NDIAYE", prenom: "Fatou", telephone: "+221773456789", categorie_permis: "B", trajets: 1 },
-    { id: 4, nom: "SECK", prenom: "Ousmane", telephone: "+221774567890", categorie_permis: "D", trajets: 1 },
-    { id: 5, nom: "BA", prenom: "Aminata", telephone: "+221775678901", categorie_permis: "D", trajets: 1 }
-  ],
-  trajets: [
-    { id: 1, ligne: "Dakar-Thiès", chauffeur: "DIOP Mamadou", date: "2026-03-01", statut: "termine", passagers: 55 },
-    { id: 2, ligne: "Dakar-Thiès", chauffeur: "FALL Ibrahima", date: "2026-03-01", statut: "termine", passagers: 20 },
-    { id: 3, ligne: "Dakar-Mbour", chauffeur: "NDIAYE Fatou", date: "2026-03-02", statut: "termine", passagers: 4 },
-    { id: 4, ligne: "Centre-Banlieue", chauffeur: "SECK Ousmane", date: "2026-03-05", statut: "termine", passagers: 22 },
-    { id: 5, ligne: "Dakar-Thiès", chauffeur: "DIOP Mamadou", date: "2026-03-10", statut: "termine", passagers: 58 },
-    { id: 6, ligne: "Aéroport", chauffeur: "FALL Ibrahima", date: "2026-03-12", statut: "termine", passagers: 18 },
-    { id: 7, ligne: "Dakar-Thiès", chauffeur: "BA Aminata", date: "2026-03-20", statut: "en_cours", passagers: 45 }
-  ],
-  incidents: [
-    { id: 1, type: "retard", description: "Embouteillage", gravite: "faible", date: "2026-03-01", resolu: true },
-    { id: 2, type: "panne", description: "Crevaison", gravite: "moyen", date: "2026-03-02", resolu: true },
-    { id: 3, type: "accident", description: "Accrochage", gravite: "grave", date: "2026-03-12", resolu: false }
-  ],
-  getStats: function() {
-    return {
-      trajets_termines: this.trajets.filter(t => t.statut === 'termine').length,
-      trajets_en_cours: this.trajets.filter(t => t.statut === 'en_cours').length,
-      vehicules_actifs: this.vehicules.filter(v => v.statut === 'actif').length,
-      incidents_ouverts: this.incidents.filter(i => !i.resolu).length,
-      total_passagers: this.trajets.reduce((sum, t) => sum + t.passagers, 0)
+// ======= API CLIENT =======
+const API_BASE_URL = "http://localhost:8000/api";
+
+async function apiCall(endpoint, method = "GET", body = null) {
+  try {
+    const options = {
+      method,
+      headers: { "Content-Type": "application/json" }
     };
+    if (body) options.body = JSON.stringify(body);
+    
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+    return await response.json();
+  } catch (error) {
+    console.error("API Error:", error);
+    showNotification(`Erreur API: ${error.message}`, 'error');
+    return null;
+  }
+}
+
+// DONNÉES
+let REAL_DATA = {
+  vehicules: [],
+  chauffeurs: [],
+  trajets: [],
+  incidents: [],
+  lignes: [],
+  
+  async loadAll() {
+    this.vehicules = await apiCall("/vehicules") || [];
+    this.chauffeurs = await apiCall("/chauffeurs") || [];
+    this.trajets = await apiCall("/trajets") || [];
+    this.incidents = await apiCall("/incidents") || [];
+    this.lignes = await apiCall("/lignes") || [];
   },
-  nextId: function(category) {
-    return Math.max(...this[category].map(item => item.id), 0) + 1;
+  
+  async getStats() {
+    return await apiCall("/stats") || {
+      total_trajets: 0,
+      trajets_en_cours: 0,
+      vehicules_actifs: 0,
+      incidents_ouverts: 0,
+      recette_totale: 0
+    };
   }
 };
 
@@ -900,85 +912,94 @@ function changeCity(city) {
 }
 
 // GESTION DES FORMULAIRES
-function submitVehicule(event) {
+async function submitVehicule(event) {
   event.preventDefault();
   const form = event.target;
   const formData = new FormData(form);
-  const newVehicule = {
-    id: REAL_DATA.nextId('vehicules'),
+  
+  const result = await apiCall("/vehicules", "POST", {
     immatriculation: formData.get('immatriculation'),
     type: formData.get('type'),
     capacite: parseInt(formData.get('capacite')),
-    statut: formData.get('statut'),
-    kilometrage: parseInt(formData.get('kilometrage'))
-  };
+    statut: formData.get('statut') || 'actif',
+    kilometrage: parseInt(formData.get('kilometrage')) || 0,
+    date_acquisition: formData.get('date_acquisition')
+  });
   
-  REAL_DATA.vehicules.push(newVehicule);
-  closeModal('modalVehicule');
-  showNotification('Véhicule ajouté avec succès !', 'success');
-  loadPage('vehicules');
+  if (result) {
+    closeModal('modalVehicule');
+    showNotification('Véhicule ajouté avec succès !', 'success');
+    await REAL_DATA.loadAll();
+    loadPage('vehicules');
+  }
 }
 
-function submitChauffeur(event) {
+async function submitChauffeur(event) {
   event.preventDefault();
   const form = event.target;
   const formData = new FormData(form);
-  const newChauffeur = {
-    id: REAL_DATA.nextId('chauffeurs'),
+  
+  const result = await apiCall("/chauffeurs", "POST", {
     nom: formData.get('nom').toUpperCase(),
     prenom: formData.get('prenom'),
+    email: formData.get('email'),
     telephone: formData.get('telephone'),
+    numero_permis: formData.get('numero_permis'),
     categorie_permis: formData.get('categorie_permis'),
-    trajets: 0
-  };
+    statut: formData.get('statut') || 'actif',
+    disponibilite: true,
+    date_embauche: formData.get('date_embauche')
+  });
   
-  REAL_DATA.chauffeurs.push(newChauffeur);
-  closeModal('modalChauffeur');
-  showNotification('Chauffeur ajouté avec succès !', 'success');
-  loadPage('chauffeurs');
+  if (result) {
+    closeModal('modalChauffeur');
+    showNotification('Chauffeur ajouté avec succès !', 'success');
+    await REAL_DATA.loadAll();
+    loadPage('chauffeurs');
+  }
 }
 
-function submitTrajet(event) {
+async function submitTrajet(event) {
   event.preventDefault();
   const form = event.target;
   const formData = new FormData(form);
-  const newTrajet = {
-    id: REAL_DATA.nextId('trajets'),
-    ligne: formData.get('ligne'),
-    chauffeur: formData.get('chauffeur'),
-    date: formData.get('date'),
-    statut: formData.get('statut'),
-    passagers: parseInt(formData.get('passagers'))
-  };
   
-  REAL_DATA.trajets.push(newTrajet);
+  const result = await apiCall("/trajets", "POST", {
+    id_ligne: parseInt(formData.get('ligne')),
+    id_chauffeur: parseInt(formData.get('chauffeur')),
+    id_vehicule: parseInt(formData.get('vehicule')),
+    date_heure_depart: formData.get('date'),
+    nb_passagers: parseInt(formData.get('passagers')),
+    recette: parseFloat(formData.get('recette')) || 0
+  });
   
-  // Mettre à jour le compteur de trajets du chauffeur
-  const chauffeur = REAL_DATA.chauffeurs.find(c => `${c.nom} ${c.prenom}` === newTrajet.chauffeur);
-  if (chauffeur) chauffeur.trajets++;
-  
-  closeModal('modalTrajet');
-  showNotification('Trajet ajouté avec succès !', 'success');
-  loadPage('trajets');
+  if (result) {
+    closeModal('modalTrajet');
+    showNotification('Trajet ajouté avec succès !', 'success');
+    await REAL_DATA.loadAll();
+    loadPage('trajets');
+  }
 }
 
-function submitIncident(event) {
+async function submitIncident(event) {
   event.preventDefault();
   const form = event.target;
   const formData = new FormData(form);
-  const newIncident = {
-    id: REAL_DATA.nextId('incidents'),
+  
+  const result = await apiCall("/incidents", "POST", {
+    id_trajet: parseInt(formData.get('trajet')),
     type: formData.get('type'),
     description: formData.get('description'),
-    gravite: formData.get('gravite'),
-    date: formData.get('date'),
-    resolu: false
-  };
+    gravite: formData.get('gravite') || 'faible',
+    date_heure_incident: formData.get('date')
+  });
   
-  REAL_DATA.incidents.push(newIncident);
-  closeModal('modalIncident');
-  showNotification('Incident signalé avec succès !', 'success');
-  loadPage('incidents');
+  if (result) {
+    closeModal('modalIncident');
+    showNotification('Incident signalé avec succès !', 'success');
+    await REAL_DATA.loadAll();
+    loadPage('incidents');
+  }
 }
 
 // GESTION DE LA RECHERCHE
@@ -1151,44 +1172,44 @@ function renderTable(data, columns) {
   `;
 }
 
-function renderDashboardData() {
-  const stats = REAL_DATA.getStats();
+async function renderDashboardData() {
+  const stats = await apiCall("/stats");
   const statsGrid = document.getElementById('statsGrid');
   statsGrid.innerHTML = `
     <div class="stat-card" onclick="navigateTo('trajets')">
       <div class="stat-info">
         <h3>Trajets terminés</h3>
-        <div class="stat-value">${stats.trajets_termines}</div>
+        <div class="stat-value">${stats?.total_trajets || 0}</div>
       </div>
       <div class="stat-icon rose"><i class="fas fa-check-circle"></i></div>
     </div>
     <div class="stat-card" onclick="navigateTo('trajets')">
       <div class="stat-info">
         <h3>En cours</h3>
-        <div class="stat-value">${stats.trajets_en_cours}</div>
+        <div class="stat-value">${stats?.trajets_en_cours || 0}</div>
       </div>
       <div class="stat-icon violet"><i class="fas fa-play-circle"></i></div>
     </div>
     <div class="stat-card" onclick="navigateTo('vehicules')">
       <div class="stat-info">
         <h3>Véhicules actifs</h3>
-        <div class="stat-value">${stats.vehicules_actifs}</div>
+        <div class="stat-value">${stats?.vehicules_actifs || 0}</div>
       </div>
       <div class="stat-icon bleu-clair"><i class="fas fa-bus"></i></div>
     </div>
     <div class="stat-card" onclick="navigateTo('incidents')">
       <div class="stat-info">
         <h3>Incidents non résolus</h3>
-        <div class="stat-value">${stats.incidents_ouverts}</div>
+        <div class="stat-value">${stats?.incidents_ouverts || 0}</div>
       </div>
       <div class="stat-icon rose"><i class="fas fa-bell"></i></div>
     </div>
     <div class="stat-card">
       <div class="stat-info">
-        <h3>Total passagers</h3>
-        <div class="stat-value">${stats.total_passagers}</div>
+        <h3>Recette totale</h3>
+        <div class="stat-value">${(stats?.recette_totale || 0).toLocaleString('fr-FR')} F</div>
       </div>
-      <div class="stat-icon violet"><i class="fas fa-users"></i></div>
+      <div class="stat-icon violet"><i class="fas fa-money-bill-wave"></i></div>
     </div>
   `;
   document.getElementById('recentTrajets').innerHTML = renderTable(REAL_DATA.trajets.slice(0, 5), ['ligne', 'chauffeur', 'date', 'statut', 'passagers']);
@@ -1222,9 +1243,33 @@ function renderChart() {
 
 function populateChauffeurSelect() {
   const select = document.getElementById('selectChauffeur');
-  if (select) {
+  if (select && REAL_DATA.chauffeurs.length > 0) {
     select.innerHTML = '<option value="">Sélectionner...</option>' +
-      REAL_DATA.chauffeurs.map(c => `<option value="${c.nom} ${c.prenom}">${c.nom} ${c.prenom}</option>`).join('');
+      REAL_DATA.chauffeurs.map(c => `<option value="${c.id_chauffeur}">${c.nom} ${c.prenom}</option>`).join('');
+  }
+}
+
+function populateLigneSelect() {
+  const select = document.getElementById('selectLigne');
+  if (select && REAL_DATA.lignes.length > 0) {
+    select.innerHTML = '<option value="">Sélectionner...</option>' +
+      REAL_DATA.lignes.map(l => `<option value="${l.id_ligne}">${l.nom}</option>`).join('');
+  }
+}
+
+function populateVehiculeSelect() {
+  const select = document.getElementById('selectVehicule');
+  if (select && REAL_DATA.vehicules.length > 0) {
+    select.innerHTML = '<option value="">Sélectionner...</option>' +
+      REAL_DATA.vehicules.map(v => `<option value="${v.id_vehicule}">${v.immatriculation}</option>`).join('');
+  }
+}
+
+function populateTrajetSelect() {
+  const select = document.getElementById('selectTrajet');
+  if (select && REAL_DATA.trajets.length > 0) {
+    select.innerHTML = '<option value="">Sélectionner...</option>' +
+      REAL_DATA.trajets.filter(t => t.statut !== 'termine').map(t => `<option value="${t.id_trajet}">${t.ligne} - ${t.date}</option>`).join('');
   }
 }
 
@@ -1295,7 +1340,7 @@ function loadPage(page) {
           <div id="chauffeursList"></div>
         </div>
       `;
-      document.getElementById('chauffeursList').innerHTML = renderTable(filteredChauffeurs, ['nom', 'prenom', 'telephone', 'categorie_permis', 'trajets']);
+      document.getElementById('chauffeursList').innerHTML = renderTable(filteredChauffeurs, ['nom', 'prenom', 'telephone', 'categorie_permis']);
       break;
       
     case 'trajets':
@@ -1307,7 +1352,7 @@ function loadPage(page) {
             <p>Historique complet (${REAL_DATA.trajets.length} trajets)</p>
           </div>
           <div style="display:flex;gap:10px">
-            <button class="btn btn-primary" onclick="openModal('modalTrajet'); populateChauffeurSelect()">
+            <button class="btn btn-primary" onclick="openModal('modalTrajet'); populateChauffeurSelect(); populateLigneSelect(); populateVehiculeSelect()">
               <i class="fas fa-plus"></i> Ajouter
             </button>
             <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.trajets, 'trajets.csv')">
@@ -1336,7 +1381,7 @@ function loadPage(page) {
             <p>Suivi sécurité (${REAL_DATA.incidents.length} incidents)</p>
           </div>
           <div style="display:flex;gap:10px">
-            <button class="btn btn-primary" onclick="openModal('modalIncident')">
+            <button class="btn btn-primary" onclick="openModal('modalIncident'); populateTrajetSelect()">
               <i class="fas fa-plus"></i> Signaler
             </button>
             <button class="btn btn-outline" onclick="exportToCSV(REAL_DATA.incidents, 'incidents.csv')">
@@ -1573,49 +1618,31 @@ function sendChatMessage() {
   
   const loadingDiv = addChatMessage('bot', '<div class="loading-dots"><span></span><span></span><span></span></div>');
   
-  setTimeout(() => {
-    loadingDiv.remove();
-    let answer = '', sql = '', data = null;
-    const q = question.toLowerCase();
-    
-    if (q.includes('trajet') && (q.includes('semaine') || q.includes('combien'))) {
-      const count = REAL_DATA.trajets.length;
-      answer = `📊 ${count} trajets ont été effectués au total. Conditions météo actuelles: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C.`;
-      sql = "SELECT COUNT(*) FROM trajets";
-      data = [{ 'Total trajets': count }];
-    } else if (q.includes('chauffeur') && (q.includes('plus') || q.includes('meilleur'))) {
-      const topChauffeurs = REAL_DATA.chauffeurs.sort((a, b) => b.trajets - a.trajets).slice(0, 3);
-      answer = `🏆 Top 3 des chauffeurs:\n${topChauffeurs.map((c, i) => `${i + 1}. ${c.nom} ${c.prenom} - ${c.trajets} trajets`).join('\n')}`;
-      sql = "SELECT nom, prenom, COUNT(*) as trajets FROM chauffeurs GROUP BY nom ORDER BY trajets DESC";
-      data = topChauffeurs.map(c => ({ 'Chauffeur': `${c.nom} ${c.prenom}`, 'Trajets': c.trajets }));
-    } else if (q.includes('maintenance') || q.includes('véhicule')) {
-      const vehiculesM = REAL_DATA.vehicules.filter(v => v.statut === 'maintenance');
-      answer = `🔧 ${vehiculesM.length} véhicule(s) en maintenance. Météo actuelle: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C - idéale pour les réparations.`;
-      sql = "SELECT * FROM vehicules WHERE statut='maintenance'";
-      data = vehiculesM.map(v => ({ 'Immatriculation': v.immatriculation, 'Type': v.type, 'Km': v.kilometrage }));
-    } else if (q.includes('incident')) {
-      const incidentsOuverts = REAL_DATA.incidents.filter(i => !i.resolu);
-      answer = `⚠️ ${incidentsOuverts.length} incident(s) non résolu(s) actuellement.`;
-      data = incidentsOuverts.map(i => ({ 'Type': i.type, 'Description': i.description, 'Gravité': i.gravite }));
-    } else if (q.includes('météo') || q.includes('meteo')) {
-      const meteo = WEATHER_DATA[currentCity].current;
-      answer = `🌤️ Météo à ${currentCity === 'dakar' ? 'Dakar' : currentCity === 'thiès' ? 'Thiès' : 'Mbour'}:\n• ${meteo.description}\n• ${meteo.temp}°C (ressenti ${meteo.feels_like}°C)\n• Humidité: ${meteo.humidity}%\n• Vent: ${meteo.wind} km/h`;
-    } else {
-      answer = `💡 Je peux répondre à vos questions sur:\n\n• Les trajets et chauffeurs\n• Les véhicules et leur maintenance\n• Les incidents\n• La météo en temps réel\n\n🌤️ Météo actuelle à ${currentCity === 'dakar' ? 'Dakar' : currentCity === 'thiès' ? 'Thiès' : 'Mbour'}: ${WEATHER_DATA[currentCity].current.description}, ${WEATHER_DATA[currentCity].current.temp}°C\n\nEssayez:\n• "Combien de trajets ?"\n• "Meilleur chauffeur ?"\n• "Véhicules en maintenance ?"\n• "Quelle est la météo ?"`;
+  (async () => {
+    try {
+      const result = await apiCall("/chat", "POST", { question });
+      loadingDiv.remove();
+      
+      if (result) {
+        addChatMessage('bot', result.answer, result.sql);
+        
+        // Afficher les données si disponibles
+        if (result.data && result.data.length > 0) {
+          const div = document.createElement('div');
+          div.className = 'message bot';
+          div.innerHTML = `<div class="message-bubble" style="padding:0;overflow-x:auto">${renderTable(result.data, Object.keys(result.data[0]))}</div>`;
+          document.getElementById('chatMessages').appendChild(div);
+        }
+      }
+    } catch (error) {
+      loadingDiv.remove();
+      addChatMessage('bot', '❌ Erreur lors de la requête. Vérifiez votre question.');
+    } finally {
+      currentChatLoading = false;
+      document.getElementById('chatInput').focus();
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
     }
-    
-    addChatMessage('bot', answer, sql);
-    
-    if (data && data.length > 0) {
-      const div = document.createElement('div');
-      div.className = 'message bot';
-      div.innerHTML = `<div class="message-bubble" style="padding:0;overflow-x:auto">${renderTable(data, Object.keys(data[0]))}</div>`;
-      document.getElementById('chatMessages').appendChild(div);
-    }
-    
-    currentChatLoading = false;
-    document.getElementById('chatInput').focus();
-  }, 800);
+  })();
 }
 
 // NAVIGATION
@@ -1651,8 +1678,13 @@ if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
 
-// Charger la page d'accueil
-navigateTo('dashboard');
+// Initialiser l'application : charger les données et afficher le dashboard
+(async () => {
+  await REAL_DATA.loadAll();
+  renderDashboardData();
+  navigateTo('dashboard');
+})();
+
 </script>
 </body>
 </html>
