@@ -14,6 +14,15 @@ import re
 import httpx
 from datetime import datetime
 
+# Charger les variables du .env manuellement
+if os.path.exists('.env'):
+    with open('.env', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip()
+
 app = FastAPI(title="TranspoBot API", version="1.0.0") #Instance de l'application FastAPI
 
 app.add_middleware(         
