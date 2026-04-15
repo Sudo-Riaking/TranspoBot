@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
+from pathlib import Path
 from typing import Literal, Optional
 import mysql.connector
 import os
@@ -15,8 +16,9 @@ import httpx
 from datetime import datetime
 
 # Charger les variables du .env manuellement
-if os.path.exists('.env'):
-    with open('.env', 'r') as f:
+env_path = Path(__file__).resolve().parent / '.env'
+if env_path.exists():
+    with env_path.open('r') as f:
         for line in f:
             line = line.strip()
             if line and not line.startswith('#') and '=' in line:
