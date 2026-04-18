@@ -266,7 +266,7 @@ async def ask_llm(question: str) -> dict: #Envoyer la question au LLM et récup�
 
         # Extraire le JSON de la réponse
         import json
-        match = re.search(r'\{.*\}', content, re.DOTALL)
+        match = re.search(r'\{[^}]*\}', content, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group())
