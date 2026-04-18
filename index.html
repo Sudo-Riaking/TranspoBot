@@ -1031,9 +1031,9 @@ function renderWeatherWidget() {
   
   let gradientClass = '';
   if (data.current.condition === 'clear') gradientClass = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
-  else if (data.current.condition === 'cloudy') gradientClass = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-  else if (data.current.condition === 'windy') gradientClass = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)';
-  else gradientClass = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  else if (data.current.condition === 'cloudy') gradientClass = 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)';
+  else if (data.current.condition === 'windy') gradientClass = 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)';
+  else gradientClass = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
   
   const widget = document.getElementById('weatherWidget');
   if (!widget) return;
