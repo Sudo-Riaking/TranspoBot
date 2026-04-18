@@ -6,6 +6,7 @@ Projet GLSi L3 — ESP/UCAD
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, validator
 from pathlib import Path
 from typing import Literal, Optional
@@ -509,6 +510,10 @@ def create_incident(incident: IncidentInput):
 @app.get("/health")
 def health():
     return {"status": "ok", "app": "TranspoBot"}
+
+@app.get("/")
+async def read_root():
+    return FileResponse("index.html")
 
 # ── Lancement ─────────────────────────────────────────────────
 if __name__ == "__main__":
