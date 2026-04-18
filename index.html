@@ -850,36 +850,36 @@ let REAL_DATA = {
   }
 };
 
-// Données météo
+// Données météo (mises à jour pour avril 2026)
 const WEATHER_DATA = {
   dakar: {
-    current: { temp: 32, feels_like: 34, humidity: 65, wind: 12, pressure: 1012, description: "ensoleillé", icon: "fa-sun", condition: "clear" },
+    current: { temp: 28, feels_like: 30, humidity: 72, wind: 8, pressure: 1014, description: "partiellement nuageux", icon: "fa-cloud-sun", condition: "cloudy" },
     forecast: [
-      { day: "Lun", temp_max: 31, temp_min: 26, icon: "fa-sun", description: "Ensoleillé" },
-      { day: "Mar", temp_max: 30, temp_min: 25, icon: "fa-cloud-sun", description: "Peu nuageux" },
-      { day: "Mer", temp_max: 29, temp_min: 24, icon: "fa-cloud-rain", description: "Pluie légère" },
-      { day: "Jeu", temp_max: 28, temp_min: 24, icon: "fa-cloud-showers-heavy", description: "Averses" },
-      { day: "Ven", temp_max: 30, temp_min: 25, icon: "fa-sun", description: "Retour du soleil" }
+      { day: "Lun", temp_max: 29, temp_min: 24, icon: "fa-cloud-sun", description: "Partiellement nuageux" },
+      { day: "Mar", temp_max: 30, temp_min: 25, icon: "fa-sun", description: "Ensoleillé" },
+      { day: "Mer", temp_max: 31, temp_min: 26, icon: "fa-cloud-rain", description: "Pluies possibles" },
+      { day: "Jeu", temp_max: 29, temp_min: 25, icon: "fa-cloud-showers-heavy", description: "Averses" },
+      { day: "Ven", temp_max: 28, temp_min: 24, icon: "fa-cloud", description: "Nuageux" }
     ]
   },
   thiès: {
-    current: { temp: 30, feels_like: 32, humidity: 58, wind: 10, pressure: 1013, description: "ensoleillé", icon: "fa-sun", condition: "clear" },
+    current: { temp: 29, feels_like: 31, humidity: 68, wind: 6, pressure: 1015, description: "ensoleillé avec nuages", icon: "fa-cloud-sun", condition: "cloudy" },
     forecast: [
-      { day: "Lun", temp_max: 29, temp_min: 24, icon: "fa-sun", description: "Ensoleillé" },
-      { day: "Mar", temp_max: 28, temp_min: 23, icon: "fa-cloud-sun", description: "Peu nuageux" },
-      { day: "Mer", temp_max: 27, temp_min: 22, icon: "fa-cloud", description: "Nuageux" },
-      { day: "Jeu", temp_max: 28, temp_min: 23, icon: "fa-sun", description: "Ensoleillé" },
-      { day: "Ven", temp_max: 29, temp_min: 24, icon: "fa-sun", description: "Ensoleillé" }
+      { day: "Lun", temp_max: 30, temp_min: 25, icon: "fa-cloud-sun", description: "Partiellement nuageux" },
+      { day: "Mar", temp_max: 31, temp_min: 26, icon: "fa-sun", description: "Ensoleillé" },
+      { day: "Mer", temp_max: 30, temp_min: 25, icon: "fa-cloud-rain", description: "Quelques pluies" },
+      { day: "Jeu", temp_max: 29, temp_min: 24, icon: "fa-cloud", description: "Nuageux" },
+      { day: "Ven", temp_max: 30, temp_min: 25, icon: "fa-cloud-sun", description: "Amélioration" }
     ]
   },
   mbour: {
-    current: { temp: 31, feels_like: 33, humidity: 70, wind: 15, pressure: 1011, description: "venteux", icon: "fa-wind", condition: "windy" },
+    current: { temp: 27, feels_like: 29, humidity: 75, wind: 10, pressure: 1013, description: "brise de mer", icon: "fa-cloud-sun", condition: "windy" },
     forecast: [
-      { day: "Lun", temp_max: 30, temp_min: 26, icon: "fa-wind", description: "Venteux" },
-      { day: "Mar", temp_max: 29, temp_min: 25, icon: "fa-cloud-sun", description: "Peu nuageux" },
-      { day: "Mer", temp_max: 28, temp_min: 24, icon: "fa-cloud-rain", description: "Pluie" },
-      { day: "Jeu", temp_max: 29, temp_min: 25, icon: "fa-sun", description: "Soleil" },
-      { day: "Ven", temp_max: 31, temp_min: 26, icon: "fa-sun", description: "Ensoleillé" }
+      { day: "Lun", temp_max: 28, temp_min: 24, icon: "fa-wind", description: "Brise côtière" },
+      { day: "Mar", temp_max: 29, temp_min: 25, icon: "fa-cloud-sun", description: "Moins de vent" },
+      { day: "Mer", temp_max: 30, temp_min: 25, icon: "fa-cloud-rain", description: "Pluies attendues" },
+      { day: "Jeu", temp_max: 28, temp_min: 24, icon: "fa-cloud-showers-heavy", description: "Averses modérées" },
+      { day: "Ven", temp_max: 29, temp_min: 25, icon: "fa-cloud-sun", description: "Amélioration" }
     ]
   }
 };
@@ -1031,6 +1031,7 @@ function renderWeatherWidget() {
   
   let gradientClass = '';
   if (data.current.condition === 'clear') gradientClass = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+  else if (data.current.condition === 'cloudy') gradientClass = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   else if (data.current.condition === 'windy') gradientClass = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)';
   else gradientClass = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   
