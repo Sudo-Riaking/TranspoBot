@@ -15,6 +15,10 @@ import re
 import json
 import httpx
 from datetime import datetime
+import os
+
+# Railway utilise la variable d'environnement PORT
+PORT = int(os.environ.get("PORT", 8080))
 
 # ── Chargement du .env ────────────────────────────────────────
 env_path = Path(__file__).resolve().parent / '.env'
