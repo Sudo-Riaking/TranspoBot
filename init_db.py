@@ -1,59 +1,27 @@
 #!/usr/bin/env python3
 """
-Script d'initialisation de la base de données MySQL
-Crée le schéma complet avec données de test
-"""
-
-#!/usr/bin/env python3
-"""
-Script d'initialisation de la base de données MySQL
-Crée le schéma complet avec données de test
+Script d'initialisation pour Railway
+Crée les tables et insère les données de test
 """
 
 import mysql.connector
 import os
-import sys
 
-# Charger les variables du .env manuellement
-if os.path.exists('.env'):
-    with open('.env', 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                os.environ[key.strip()] = value.strip()
-
-print("\n📌 Configuration MySQL")
-print("=" * 50)
-
-# Récupère depuis les variables d'environnement
-host = os.getenv('DB_HOST', 'localhost')
-user = os.getenv('DB_USER', 'root')
-password = os.getenv('DB_PASSWORD', '')
-database = os.getenv('DB_NAME', 'transpobot')
-
-# Affiche les valeurs actuelles
-print(f"Host:     {host}")
-print(f"User:     {user}")
-print(f"Password: {'***' if password else '(empty)'}")
-print(f"Database: {database}")
-print("=" * 50)
-
-# Demande de modification
-prompt = input("\nModifier la configuration? (y/n) [n]: ").strip().lower()
-if prompt == 'y':
-    host = input(f"Host [{host}]: ").strip() or host
-    user = input(f"User [{user}]: ").strip() or user
-    password = input(f"Password [***]: ").strip() or password
-    database = input(f"Database [{database}]: ").strip() or database
-
+# Railway fournit automatiquement ces variables
 DB_CONFIG = {
-    'host': host,
-    'user': user,
-    'password': password,
-    'database': database
+    'host': os.getenv('MYSQL_HOST'),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'database': os.getenv('MYSQL_DATABASE'),
+    'port': int(os.getenv('MYSQL_PORT', 3306))
 }
 
+print("📌 Configuration MySQL Railway")
+print(f"Host: {DB_CONFIG['host']}")
+print(f"Database: {DB_CONFIG['database']}")
+print(f"User: {DB_CONFIG['user']}")
+
+# Votre SQL d'initialisation (copié depuis schema.sql)
 SQL_INIT = """
 -- Tables de base
 CREATE TABLE IF NOT EXISTS vehicules (
@@ -132,98 +100,60 @@ CREATE TABLE IF NOT EXISTS incidents (
     resolu BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (id_trajet) REFERENCES trajets(id_trajet) ON DELETE CASCADE
 );
-"""
 
-# Données de test
-SQL_SEED = """
--- Insérer des véhicules
-INSERT INTO vehicules (immatriculation, type, capacite, statut, kilometrage, date_acquisition)
-VALUES 
-    ('TN-001-TN', 'bus', 50, 'actif', 45000, '2020-01-15'),
-    ('TN-002-TN', 'bus', 50, 'actif', 38000, '2020-06-20'),
-    ('TN-003-TN', 'minibus', 25, 'actif', 12000, '2021-03-10'),
-    ('TN-004-TN', 'taxi', 5, 'maintenance', 105000, '2018-11-05'),
-    ('TN-005-TN', 'minibus', 25, 'actif', 23000, '2021-09-12');
+-- Données de test
+INSERT INTO vehicules (immatriculation, type, capacite, statut, kilometrage, date_acquisition) VALUES
+    ('DK-1234-AB', 'bus', 60, 'actif', 45000, '2021-03-15'),
+    ('DK-5678-CD', 'minibus', 25, 'actif', 32000, '2022-06-01'),
+    ('DK-9012-EF', 'bus', 60, 'maintenance', 78000, '2019-11-20'),
+    ('DK-3456-GH', 'taxi', 5, 'actif', 120000, '2020-01-10'),
+    ('DK-7890-IJ', 'minibus', 25, 'actif', 15000, '2023-09-05');
 
--- Insérer des chauffeurs
-INSERT INTO chauffeurs (nom, prenom, email, telephone, numero_permis, categorie_permis, statut, disponibilite, date_embauche)
-VALUES 
-    ('Traore', 'Moussa', 'moussa.traore@transpobot.tn', '+216-71-234-567', 'TN123456', 'D', 'actif', TRUE, '2019-02-01'),
-    ('Ben Ali', 'Ahmed', 'ahmed.benali@transpobot.tn', '+216-71-345-678', 'TN234567', 'D', 'actif', FALSE, '2019-05-15'),
-    ('Guessous', 'Fatima', 'fatima.guessous@transpobot.tn', '+216-71-456-789', 'TN345678', 'D', 'actif', TRUE, '2020-01-10'),
-    ('Jellane', 'Karim', 'karim.jellane@transpobot.tn', '+216-71-567-890', 'TN456789', 'D', 'suspendu', FALSE, '2020-03-20'),
-    ('Mami', 'Salah', 'salah.mami@transpobot.tn', '+216-71-678-901', 'TN567890', 'D', 'actif', TRUE, '2021-06-15');
+INSERT INTO chauffeurs (nom, prenom, email, telephone, numero_permis, categorie_permis, statut, disponibilite, date_embauche) VALUES
+    ('DIOP', 'Mamadou', 'mdiop@transpobot.sn', '+221771234567', 'P-2019-001', 'D', 'actif', TRUE, '2019-04-01'),
+    ('FALL', 'Ibrahima', 'ifall@transpobot.sn', '+221772345678', 'P-2020-002', 'D', 'actif', TRUE, '2020-07-15'),
+    ('NDIAYE', 'Fatou', 'fndiaye@transpobot.sn', '+221773456789', 'P-2021-003', 'B', 'actif', TRUE, '2021-02-01'),
+    ('SECK', 'Ousmane', 'oseck@transpobot.sn', '+221774567890', 'P-2022-004', 'D', 'actif', TRUE, '2022-10-20'),
+    ('BA', 'Aminata', 'aba@transpobot.sn', '+221775678901', 'P-2023-005', 'D', 'actif', FALSE, '2023-01-10');
 
--- Insérer les affectations véhicule-chauffeur
-INSERT INTO conduire (id_vehicule, id_chauffeur, date_affectation)
-VALUES 
-    (1, 1, '2023-01-01'),
-    (2, 2, '2023-01-05'),
-    (3, 3, '2023-02-01'),
-    (4, 4, '2023-01-15');
+INSERT INTO conduire (id_vehicule, id_chauffeur, date_affectation) VALUES
+    (1, 1, '2021-04-01'),
+    (2, 2, '2022-06-15'),
+    (4, 3, '2021-02-10'),
+    (5, 4, '2022-11-01'),
+    (1, 5, '2023-02-01');
 
--- Insérer des lignes
-INSERT INTO lignes (code, nom, origine, destination, distance_km, duree_minutes)
-VALUES 
-    ('L1', 'Tunis - Sousse', 'Tunis', 'Sousse', 140, 180),
-    ('L2', 'Tunis - Sfax', 'Tunis', 'Sfax', 320, 420),
-    ('L3', 'Sousse - Gabès', 'Sousse', 'Gabès', 380, 500),
-    ('L4', 'Tunis - Sidi Bouzid', 'Tunis', 'Sidi Bouzid', 250, 320),
-    ('L5', 'Sfax - Djerba', 'Sfax', 'Djerba', 250, 340);
+INSERT INTO lignes (code, nom, origine, destination, distance_km, duree_minutes) VALUES
+    ('L1', 'Dakar - Thiès', 'Dakar', 'Thiès', 70.5, 90),
+    ('L2', 'Dakar - Mbour', 'Dakar', 'Mbour', 82.0, 120),
+    ('L3', 'Centre - Banlieue', 'Plateau', 'Pikine', 15.0, 45),
+    ('L4', 'Aéroport', 'Centre-ville', 'AIBD', 45.0, 60);
 
--- Insérer les tarifs
-INSERT INTO tarifs (id_ligne, type_client, prix)
-VALUES 
-    (1, 'adulte', 18.5),
-    (1, 'enfant', 9.25),
-    (2, 'adulte', 35.0),
-    (2, 'enfant', 17.5),
-    (3, 'adulte', 42.0),
-    (3, 'enfant', 21.0),
-    (4, 'adulte', 28.0),
-    (4, 'enfant', 14.0),
-    (5, 'adulte', 28.0),
-    (5, 'enfant', 14.0);
+INSERT INTO tarifs (id_ligne, type_client, prix) VALUES
+    (1, 'normal', 2500), (1, 'etudiant', 1500),
+    (2, 'normal', 3000), (2, 'etudiant', 1800),
+    (3, 'normal', 500), (3, 'etudiant', 300),
+    (4, 'normal', 5000), (4, 'etudiant', 3000);
 
--- Insérer des trajets de test
-INSERT INTO trajets (id_ligne, id_chauffeur, id_vehicule, date_heure_depart, date_heure_arrivee, statut, nb_passagers, recette)
-VALUES 
-    (1, 1, 1, '2024-04-10 08:00:00', '2024-04-10 11:00:00', 'termine', 48, 888.0),
-    (1, 1, 1, '2024-04-10 12:30:00', '2024-04-10 15:30:00', 'termine', 50, 925.0),
-    (2, 2, 2, '2024-04-10 07:00:00', '2024-04-10 12:00:00', 'termine', 49, 1715.0),
-    (3, 3, 3, '2024-04-11 06:00:00', NULL, 'en_cours', 22, 924.0),
-    (4, 1, 1, '2024-04-12 09:00:00', NULL, 'planifie', 0, 0),
-    (1, 1, 1, '2024-04-12 14:00:00', NULL, 'planifie', 0, 0);
+INSERT INTO trajets (id_ligne, id_chauffeur, id_vehicule, date_heure_depart, date_heure_arrivee, statut, nb_passagers, recette) VALUES
+    (1, 1, 1, NOW(), DATE_ADD(NOW(), INTERVAL 90 MINUTE), 'termine', 55, 137500),
+    (1, 2, 2, NOW(), DATE_ADD(NOW(), INTERVAL 90 MINUTE), 'termine', 20, 50000),
+    (2, 3, 4, NOW(), DATE_ADD(NOW(), INTERVAL 120 MINUTE), 'termine', 4, 12000),
+    (3, 4, 5, NOW(), DATE_ADD(NOW(), INTERVAL 45 MINUTE), 'termine', 22, 11000),
+    (1, 1, 1, NOW(), DATE_ADD(NOW(), INTERVAL 90 MINUTE), 'en_cours', 45, 112500);
 
--- Insérer des incidents
-INSERT INTO incidents (id_trajet, type, description, gravite, date_heure_incident, resolu)
-VALUES 
-    (1, 'retard_depart', 'Embouteillage à Tunis', 'faible', '2024-04-10 08:15:00', TRUE),
-    (3, 'panne_moteur', 'Problème de surchauffe moteur', 'grave', '2024-04-10 10:30:00', FALSE),
-    (4, 'incident_passager', 'Passager malade', 'moyen', '2024-04-11 08:45:00', TRUE);
+INSERT INTO incidents (id_trajet, type, description, gravite, date_heure_incident, resolu) VALUES
+    (1, 'retard', 'Embouteillage au centre-ville', 'faible', NOW(), TRUE),
+    (2, 'panne', 'Crevaison pneu avant droit', 'moyen', NOW(), TRUE);
 """
 
 def init_database():
-    """Initialise la base de données"""
-    print("🔧 Initialisation de la base de données TranspoBot...")
-    
     try:
-        # Connexion au serveur MySQL (sans base de données)
-        print(f"📡 Connexion à MySQL ({DB_CONFIG['host']})...")
-        conn = mysql.connector.connect(
-            host=DB_CONFIG['host'],
-            user=DB_CONFIG['user'],
-            password=DB_CONFIG['password']
-        )
+        print("🔧 Connexion à MySQL Railway...")
+        conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        # Créer la base de données
-        print(f"📦 Création de la base de données '{DB_CONFIG['database']}'...")
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_CONFIG['database']};")
-        cursor.execute(f"USE {DB_CONFIG['database']};")
-        
-        # Créer les tables
-        print("🗂️  Création des tables...")
+        print("🗂️ Création des tables...")
         for statement in SQL_INIT.split(';'):
             statement = statement.strip()
             if statement:
@@ -231,56 +161,22 @@ def init_database():
         
         conn.commit()
         
-        # Vérifier si les données existent
-        cursor.execute("SELECT COUNT(*) FROM vehicules;")
-        count = cursor.fetchone()[0]
-        
-        # Insérer les données de test si vides
-        if count == 0:
-            print("🌱 Insertion des données de test...")
-            for statement in SQL_SEED.split(';'):
-                statement = statement.strip()
-                if statement:
-                    try:
-                        cursor.execute(statement)
-                    except mysql.connector.Error as e:
-                        # Ignorer les doublons
-                        if "Duplicate entry" not in str(e):
-                            print(f"⚠️  Avertissement: {e}")
-            conn.commit()
-        
-        # Afficher un résumé
-        cursor.execute("SELECT COUNT(*) FROM vehicules;")
+        # Vérification
+        cursor.execute("SELECT COUNT(*) FROM vehicules")
         v_count = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM chauffeurs;")
+        cursor.execute("SELECT COUNT(*) FROM chauffeurs")
         c_count = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM trajets;")
-        t_count = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM incidents;")
-        i_count = cursor.fetchone()[0]
         
-        print("\n✅ Base de données initialisée avec succès!")
-        print(f"📊 Résumé:")
-        print(f"   • Véhicules: {v_count}")
-        print(f"   • Chauffeurs: {c_count}")
-        print(f"   • Trajets: {t_count}")
-        print(f"   • Incidents: {i_count}\n")
+        print(f"\n✅ Base de données initialisée avec succès!")
+        print(f"📊 Véhicules: {v_count}, Chauffeurs: {c_count}")
         
         cursor.close()
         conn.close()
         return True
         
-    except mysql.connector.Error as e:
-        print(f"\n❌ Erreur MySQL: {e}")
-        print(f"\n💡 Assurez-vous que:")
-        print(f"   • MySQL est en cours d'exécution")
-        print(f"   • L'utilisateur '{DB_CONFIG['user']}' a les droits nécessaires")
-        print(f"   • Vous pouvez vous connecter à '{DB_CONFIG['host']}'")
-        return False
     except Exception as e:
-        print(f"\n❌ Erreur: {e}")
+        print(f"❌ Erreur: {e}")
         return False
 
 if __name__ == "__main__":
-    success = init_database()
-    exit(0 if success else 1)
+    init_database()
