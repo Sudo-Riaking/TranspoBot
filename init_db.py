@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS chauffeurs (
     telephone VARCHAR(20),
     numero_permis VARCHAR(20) UNIQUE,
     categorie_permis VARCHAR(10),
-    statut ENUM('actif', 'inactive', 'conge') DEFAULT 'actif',
-    disponibilite ENUM('disponible', 'occupe', 'en_repos') DEFAULT 'disponible',
+    statut ENUM('actif', 'suspendu', 'inactif') DEFAULT 'actif',
+    disponibilite BOOLEAN DEFAULT TRUE,
     date_embauche DATE
 );
 
@@ -148,11 +148,11 @@ VALUES
 -- Insérer des chauffeurs
 INSERT INTO chauffeurs (nom, prenom, email, telephone, numero_permis, categorie_permis, statut, disponibilite, date_embauche)
 VALUES 
-    ('Traore', 'Moussa', 'moussa.traore@transpobot.tn', '+216-71-234-567', 'TN123456', 'D', 'actif', 'disponible', '2019-02-01'),
-    ('Ben Ali', 'Ahmed', 'ahmed.benali@transpobot.tn', '+216-71-345-678', 'TN234567', 'D', 'actif', 'occupe', '2019-05-15'),
-    ('Guessous', 'Fatima', 'fatima.guessous@transpobot.tn', '+216-71-456-789', 'TN345678', 'D', 'actif', 'disponible', '2020-01-10'),
-    ('Jellane', 'Karim', 'karim.jellane@transpobot.tn', '+216-71-567-890', 'TN456789', 'D', 'conge', 'en_repos', '2020-03-20'),
-    ('Mami', 'Salah', 'salah.mami@transpobot.tn', '+216-71-678-901', 'TN567890', 'D', 'actif', 'disponible', '2021-06-15');
+    ('Traore', 'Moussa', 'moussa.traore@transpobot.tn', '+216-71-234-567', 'TN123456', 'D', 'actif', TRUE, '2019-02-01'),
+    ('Ben Ali', 'Ahmed', 'ahmed.benali@transpobot.tn', '+216-71-345-678', 'TN234567', 'D', 'actif', FALSE, '2019-05-15'),
+    ('Guessous', 'Fatima', 'fatima.guessous@transpobot.tn', '+216-71-456-789', 'TN345678', 'D', 'actif', TRUE, '2020-01-10'),
+    ('Jellane', 'Karim', 'karim.jellane@transpobot.tn', '+216-71-567-890', 'TN456789', 'D', 'suspendu', FALSE, '2020-03-20'),
+    ('Mami', 'Salah', 'salah.mami@transpobot.tn', '+216-71-678-901', 'TN567890', 'D', 'actif', TRUE, '2021-06-15');
 
 -- Insérer les affectations véhicule-chauffeur
 INSERT INTO conduire (id_vehicule, id_chauffeur, date_affectation)

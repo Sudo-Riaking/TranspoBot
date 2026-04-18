@@ -43,15 +43,15 @@ DB_CONFIG = {
 }
 
 LLM_API_KEY  = os.getenv("OPENAI_API_KEY", "")
-LLM_MODEL    = os.getenv("LLM_MODEL", "gpt-4o-mini")
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+LLM_MODEL    = os.getenv("LLM_MODEL", "llama3-70b-8192")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 
 # ── Schéma de la base (pour le prompt système) ─────────────────
 DB_SCHEMA = """
 Tables MySQL disponibles :
 
 vehicules(id_vehicule, immatriculation, type[bus/minibus/taxi], capacite, statut[actif/maintenance/hors_service], kilometrage, date_acquisition, date_dernier_maintenance)
-chauffeurs(id_chauffeur, nom, prenom, email, telephone, numero_permis, categorie_permis, statut[actif/suspendu/inactif], disponibilite, date_embauche)
+chauffeurs(id_chauffeur, nom, prenom, email, telephone, numero_permis, categorie_permis, statut[actif/suspendu/inactif], disponibilite (BOOLEAN), date_embauche)
 conduire(id_vehicule, id_chauffeur, date_affectation) -- association chauffeurs ↔ véhicules
 lignes(id_ligne, code, nom, origine, destination, distance_km, duree_minutes)
 tarifs(id_tarif, id_ligne, type_client[normal/etudiant/senior], prix)
