@@ -16,25 +16,28 @@ if ! python3 -c "import fastapi" 2>/dev/null; then
     exit 1
 fi
 
-# Vérifier le fichier .env
-if [ ! -f .env ]; then
-    echo "⚠️  Fichier .env non trouvé"
-    echo "💡 Créez-le à partir de .env.example:"
-    echo "   cp .env.example .env"
-    echo "   Puis complétez les variables d'environnement"
-    exit 1
+# Charger les variables d'environnement depuis .env si le fichier existe (développement local)
+if [ -f .env ]; then
+    echo "⚙️  Chargement des variables depuis .env"
+    export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Charger les variables d'environnement
-export $(cat .env | grep -v '^#' | xargs)
+# Déterminer le mode (dev avec reload si DEV_MODE=true, sinon production)
+RELOAD_FLAG=""
+if [ "$DEV_MODE" = "true" ]; then
+    RELOAD_FLAG="--reload"
+fi
+
+# Utiliser la variable PORT de Railway, ou 8000 par défaut
+PORT=${PORT:-8000}
 
 # Démarrer le serveur
-echo "📡 Serveur démarrant sur http://localhost:8000"
-echo "📖 Docs API: http://localhost:8000/docs"
-echo "🧪 Tests: http://localhost:8000/redoc"
-echo "💬 Chat: http://localhost:8000"
+echo "📡 Serveur démarrant sur http://localhost:$PORT"
+echo "📖 Docs API: http://localhost:$PORT/docs"
+echo "🧪 Tests: http://localhost:$PORT/redoc"
+echo "💬 Chat: http://localhost:$PORT"
 echo ""
 echo "Appuyez sur Ctrl+C pour arrêter le serveur..."
 echo ""
 
-python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT $RELOAD_FLAG

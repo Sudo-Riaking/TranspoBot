@@ -511,20 +511,10 @@ def create_incident(incident: IncidentInput):
 def health():
     return {"status": "ok", "app": "TranspoBot"}
 
-"""@app.get("/")
-async def read_root():
-    return FileResponse("index.html")"""
 @app.get("/")
 async def read_root():
-    return {
-        "message": "TranspoBot API is running",
-        "endpoints": {
-            "health": "/health",
-            "stats": "/api/stats",
-            "vehicules": "/api/vehicules",
-            "docs": "/docs"
-        }
-    }
+    return FileResponse("index.html")
+
 @app.get("/api/init")
 async def init_tables():
     """Initialise les tables et données de test"""
@@ -556,4 +546,6 @@ async def init_tables():
 # ── Lancement ─────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=PORT, reload=True)
+    # reload=False pour la production (Railway), True pour le développement local
+    dev_mode = os.getenv("DEV_MODE", "false").lower() == "true"
+    uvicorn.run("app:app", host="0.0.0.0", port=PORT, reload=dev_mode)
