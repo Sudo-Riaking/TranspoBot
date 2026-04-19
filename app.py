@@ -568,19 +568,9 @@ def create_trajet(trajet: TrajetInput):
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO trajets (id_ligne, id_chauffeur, id_vehicule, date_heure_depart,
-           test")
-async def test():
-    return {"status": "ok", "message": "API is working"}
-
-@app.get("/                     nb_passagers, recette, statut)
+                                nb_passagers, recette, statut)
             VALUES (%s, %s, %s, %s, %s, %s, 'planifie')
-    try:
-        if os.path.exists("index.html"):
-            return FileResponse("index.html")
-        else:
-            return {"message": "TranspoBot API is running", "note": "index.html not found"}
-    except Exception as e:
-        return {"error": str(e)}.id_chauffeur, trajet.id_vehicule,
+        """, (trajet.id_ligne, trajet.id_chauffeur, trajet.id_vehicule,
               trajet.date_heure_depart, trajet.nb_passagers, trajet.recette))
         conn.commit()
         trajet_id = cursor.lastrowid
@@ -621,9 +611,20 @@ def create_incident(incident: IncidentInput):
 def health():
     return {"status": "ok", "app": "TranspoBot"}
 
+@app.get("/test")
+async def test():
+    """Route de test simple"""
+    return {"status": "ok", "message": "API is working"}
+
 @app.get("/")
 async def read_root():
-    return FileResponse("index.html")
+    try:
+        if os.path.exists("index.html"):
+            return FileResponse("index.html")
+        else:
+            return {"message": "TranspoBot API is running", "note": "index.html not found"}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/api/init")
 async def init_tables():
