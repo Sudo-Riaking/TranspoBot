@@ -43,13 +43,30 @@ app.add_middleware(
 async def startup_event():
     """Initialise TOUTES les tables et données de test au démarrage"""
     try:
+        # D'abord, essayer de créer la base de données si elle n'existe pas
+        config = get_db_config()
+        db_name = config['database']
+
+        # Connexion sans spécifier la base de données
+        temp_config = config.copy()
+        del temp_config['database']
+
+        conn = mysql.connector.connect(**temp_config)
+        cursor = conn.cursor()
+
+        # Créer la base de données si elle n'existe pas
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+        cursor.close()
+        conn.close()
+
+        # Maintenant se connecter à la base de données
         conn = get_db()
         cursor = conn.cursor()
-        
+
         # Lire et exécuter le fichier schema.sql complet
         with open('schema.sql', 'r') as f:
             sql_script = f.read()
-        
+
         # Exécuter chaque instruction SQL (CREATE TABLE, INSERT, etc.)
         for statement in sql_script.split(';'):
             statement = statement.strip()
@@ -60,13 +77,14 @@ async def startup_event():
                     # Ignorer les erreurs "table already exists"
                     if "already exists" not in str(e).lower():
                         print(f"Warning: {e}")
-        
+
         conn.commit()
         cursor.close()
         conn.close()
         print("✅ Base de données complète initialisée avec succès!")
     except Exception as e:
         print(f"⚠️ Erreur init BD: {e}")
+        print(f"Config DB: {get_db_config()}")
 
 # ── Configuration ──────────────────────────────────────────────
 import re
