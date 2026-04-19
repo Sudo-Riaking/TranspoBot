@@ -40,12 +40,38 @@ app.add_middleware(
 )
 
 # ── Configuration ──────────────────────────────────────────────
-DB_CONFIG = {
-    "host":     os.getenv("DB_HOST", "localhost"),
-    "user":     os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", ""),
-    "database": os.getenv("DB_NAME", "transpobot"),
-}
+import re
+
+# Configuration base de données pour Railway
+def get_db_config():
+    # Vérifier si DATABASE_URL existe (Railway)
+    database_url = os.getenv("DATABASE_URL")
+    
+    if database_url:
+        # Parse l'URL: mysql://user:password@host:port/database
+        match = re.match(r'mysql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', database_url)
+        if match:
+            return {
+                "host": match.group(3),
+                "user": match.group(1),
+                "password": match.group(2),
+                "database": match.group(5),
+                "port": int(match.group(4))
+            }
+    
+    # Fallback pour le développement local
+    return {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD", ""),
+        "database": os.getenv("DB_NAME", "transpobot"),
+        "port": 3306
+    }
+
+# Utilisez cette fonction dans get_db()
+def get_db():
+    config = get_db_config()
+    return mysql.connector.connect(**config)
 
 LLM_API_KEY  = os.getenv("OPENAI_API_KEY", "")
 LLM_MODEL    = os.getenv("LLM_MODEL", "llama3-70b-8192")
@@ -489,8 +515,35 @@ def health():
 async def read_root():
     return FileResponse("index.html")
 
+@app.get("/api/init")
+async def init_tables():
+    """Initialise les tables et données de test"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Lecture du fichier schema.sql
+        with open('schema.sql', 'r') as f:
+            sql_content = f.read()
+        
+        # Exécuter chaque requête
+        for statement in sql_content.split(';'):
+            statement = statement.strip()
+            if statement and not statement.startswith('--'):
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    print(f"Warning: {e}")
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": "Base de données initialisée avec succès!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # ── Lancement ─────────────────────────────────────────────────
-# À la fin du fichier, remplacez le bloc if __name__...
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=PORT, reload=True)
