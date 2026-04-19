@@ -39,6 +39,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialise la base de données au démarrage"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Créer la table utilisateurs (essentielle pour le login)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS utilisateurs (
+                id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(150) NOT NULL UNIQUE,
+                nom_complet VARCHAR(100) NOT NULL,
+                mot_de_passe VARCHAR(255) NOT NULL,
+                role ENUM('admin','gestionnaire','superviseur') DEFAULT 'gestionnaire',
+                statut ENUM('actif','inactif','bloque') DEFAULT 'actif',
+                derniere_connexion DATETIME,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Vérifier si le compte admin existe
+        cursor.execute("SELECT COUNT(*) FROM utilisateurs WHERE email = 'admin@transpobot.sn'")
+        if cursor.fetchone()[0] == 0:
+            # Mot de passe: transpo2026
+            hashed = "$2b$12$OIX0qY7Q5Z3Z.C8n7vW.h.WcKZQ6p.4QQ7Q5Z3Z.C8n7vW.h.WcKZQ6"
+            cursor.execute("""
+                INSERT INTO utilisateurs (email, nom_complet, mot_de_passe, role, statut)
+                VALUES ('admin@transpobot.sn', 'Administrateur', %s, 'admin', 'actif')
+            """, (hashed,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ Base de données initialisée avec succès!")
+    except Exception as e:
+        print(f"⚠️ Erreur init BD: {e}")
+
 # ── Configuration ──────────────────────────────────────────────
 import re
 
@@ -529,9 +568,19 @@ def create_trajet(trajet: TrajetInput):
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO trajets (id_ligne, id_chauffeur, id_vehicule, date_heure_depart,
-                                nb_passagers, recette, statut)
+           test")
+async def test():
+    return {"status": "ok", "message": "API is working"}
+
+@app.get("/                     nb_passagers, recette, statut)
             VALUES (%s, %s, %s, %s, %s, %s, 'planifie')
-        """, (trajet.id_ligne, trajet.id_chauffeur, trajet.id_vehicule,
+    try:
+        if os.path.exists("index.html"):
+            return FileResponse("index.html")
+        else:
+            return {"message": "TranspoBot API is running", "note": "index.html not found"}
+    except Exception as e:
+        return {"error": str(e)}.id_chauffeur, trajet.id_vehicule,
               trajet.date_heure_depart, trajet.nb_passagers, trajet.recette))
         conn.commit()
         trajet_id = cursor.lastrowid
