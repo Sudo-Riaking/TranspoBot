@@ -15,7 +15,6 @@ import re
 import json
 import httpx
 from datetime import datetime
-import os
 
 # Railway utilise la variable d'environnement PORT
 PORT = int(os.environ.get("PORT", 8080))
@@ -198,7 +197,8 @@ Réponse :
 
 # ── Connexion MySQL ────────────────────────────────────────────
 def get_db():
-    return mysql.connector.connect(**DB_CONFIG)
+    config = get_db_config()  # Utilisez la fonction que vous avez créée
+    return mysql.connector.connect(**config)
 
 def execute_query(sql: str):
     conn = get_db()
