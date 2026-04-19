@@ -385,6 +385,50 @@ def get_lignes():
         FROM lignes ORDER BY code
     """)
 
+# ── Modèles Pydantic ──────────────────────────────────────────
+class VehiculeInput(BaseModel):
+    immatriculation: str
+    type: Literal["bus", "minibus", "taxi"]
+    capacite: int
+    statut: Literal["actif", "maintenance", "hors_service"] = "actif"
+    kilometrage: int = 0
+    date_acquisition: Optional[str] = None
+
+class ChauffeurInput(BaseModel):
+    nom: str
+    prenom: str
+    email: Optional[str] = None
+    telephone: Optional[str] = None
+    numero_permis: str
+    categorie_permis: str
+    statut: Literal["actif", "suspendu", "inactif"] = "actif"
+    disponibilite: bool = True
+    date_embauche: Optional[str] = None
+
+class TrajetInput(BaseModel):
+    id_ligne: int
+    id_chauffeur: int
+    id_vehicule: int
+    date_heure_depart: str
+    nb_passagers: int
+    recette: float = 0
+
+class IncidentInput(BaseModel):
+    id_trajet: int
+    type: Literal["panne", "accident", "retard", "autre"]
+    description: Optional[str] = None
+    gravite: Literal["faible", "moyen", "grave"] = "faible"
+    date_heure_incident: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    user: dict
+    token: str
+
 # ── Authentification ──────────────────────────────────────────
 @app.post("/api/login")
 async def login(req: LoginRequest):
@@ -435,50 +479,6 @@ async def login(req: LoginRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# ── Modèles POST ──────────────────────────────────────────────
-class VehiculeInput(BaseModel):
-    immatriculation: str
-    type: Literal["bus", "minibus", "taxi"]
-    capacite: int
-    statut: Literal["actif", "maintenance", "hors_service"] = "actif"
-    kilometrage: int = 0
-    date_acquisition: Optional[str] = None
-
-class ChauffeurInput(BaseModel):
-    nom: str
-    prenom: str
-    email: Optional[str] = None
-    telephone: Optional[str] = None
-    numero_permis: str
-    categorie_permis: str
-    statut: Literal["actif", "suspendu", "inactif"] = "actif"
-    disponibilite: bool = True
-    date_embauche: Optional[str] = None
-
-class TrajetInput(BaseModel):
-    id_ligne: int
-    id_chauffeur: int
-    id_vehicule: int
-    date_heure_depart: str
-    nb_passagers: int
-    recette: float = 0
-
-class IncidentInput(BaseModel):
-    id_trajet: int
-    type: Literal["panne", "accident", "retard", "autre"]
-    description: Optional[str] = None
-    gravite: Literal["faible", "moyen", "grave"] = "faible"
-    date_heure_incident: Optional[str] = None
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-class LoginResponse(BaseModel):
-    success: bool
-    user: dict
-    token: str
 
 # ── POST Endpoints ────────────────────────────────────────────
 @app.post("/api/vehicules")
