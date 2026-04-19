@@ -41,40 +41,30 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialise la base de données au démarrage"""
+    """Initialise TOUTES les tables et données de test au démarrage"""
     try:
         conn = get_db()
         cursor = conn.cursor()
         
-        # Créer la table utilisateurs (essentielle pour le login)
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS utilisateurs (
-                id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(150) NOT NULL UNIQUE,
-                nom_complet VARCHAR(100) NOT NULL,
-                mot_de_passe VARCHAR(255) NOT NULL,
-                role ENUM('admin','gestionnaire','superviseur') DEFAULT 'gestionnaire',
-                statut ENUM('actif','inactif','bloque') DEFAULT 'actif',
-                derniere_connexion DATETIME,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        """)
+        # Lire et exécuter le fichier schema.sql complet
+        with open('schema.sql', 'r') as f:
+            sql_script = f.read()
         
-        # Vérifier si le compte admin existe
-        cursor.execute("SELECT COUNT(*) FROM utilisateurs WHERE email = 'admin@transpobot.sn'")
-        if cursor.fetchone()[0] == 0:
-            # Mot de passe: transpo2026 (hash bcrypt valide)
-            hashed = "$2b$12$t3riokCeV0c5NGPQMNKoyOM12mCQiLw8eq3BSTeCN14zUjGdPPyp."
-            cursor.execute("""
-                INSERT INTO utilisateurs (email, nom_complet, mot_de_passe, role, statut)
-                VALUES ('admin@transpobot.sn', 'Administrateur', %s, 'admin', 'actif')
-            """, (hashed,))
+        # Exécuter chaque instruction SQL (CREATE TABLE, INSERT, etc.)
+        for statement in sql_script.split(';'):
+            statement = statement.strip()
+            if statement and not statement.startswith('--'):
+                try:
+                    cursor.execute(statement)
+                except Exception as e:
+                    # Ignorer les erreurs "table already exists"
+                    if "already exists" not in str(e).lower():
+                        print(f"Warning: {e}")
         
         conn.commit()
         cursor.close()
         conn.close()
-        print("✅ Base de données initialisée avec succès!")
+        print("✅ Base de données complète initialisée avec succès!")
     except Exception as e:
         print(f"⚠️ Erreur init BD: {e}")
 
@@ -638,33 +628,33 @@ async def read_root():
         print(f"Erreur dans read_root: {e}")
         return {"error": str(e), "message": "Erreur serveur"}
 
-@app.get("/api/init")
-async def init_tables():
-    """Initialise les tables et données de test"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        # Lecture du fichier schema.sql
-        with open('schema.sql', 'r') as f:
-            sql_content = f.read()
-        
-        # Exécuter chaque requête
-        for statement in sql_content.split(';'):
-            statement = statement.strip()
-            if statement and not statement.startswith('--'):
-                try:
-                    cursor.execute(statement)
-                except Exception as e:
-                    print(f"Warning: {e}")
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return {"status": "success", "message": "Base de données initialisée avec succès!"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+# @app.get("/api/init")
+# async def init_tables():
+#     """Initialise les tables et données de test"""
+#     try:
+#         conn = get_db()
+#         cursor = conn.cursor()
+#         
+#         # Lecture du fichier schema.sql
+#         with open('schema.sql', 'r') as f:
+#             sql_content = f.read()
+#         
+#         # Exécuter chaque requête
+#         for statement in sql_content.split(';'):
+#             statement = statement.strip()
+#             if statement and not statement.startswith('--'):
+#                 try:
+#                     cursor.execute(statement)
+#                 except Exception as e:
+#                     print(f"Warning: {e}")
+#         
+#         conn.commit()
+#         cursor.close()
+#         conn.close()
+#         
+#         return {"status": "success", "message": "Base de données initialisée avec succès!"}
+#     except Exception as e:
+#         return {"status": "error", "message": str(e)}
 
 # ── Lancement ─────────────────────────────────────────────────
 if __name__ == "__main__":
