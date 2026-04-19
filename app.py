@@ -64,8 +64,8 @@ async def startup_event():
         # Vérifier si le compte admin existe
         cursor.execute("SELECT COUNT(*) FROM utilisateurs WHERE email = 'admin@transpobot.sn'")
         if cursor.fetchone()[0] == 0:
-            # Mot de passe: transpo2026
-            hashed = "$2b$12$OIX0qY7Q5Z3Z.C8n7vW.h.WcKZQ6p.4QQ7Q5Z3Z.C8n7vW.h.WcKZQ6"
+            # Mot de passe: transpo2026 (hash bcrypt valide)
+            hashed = "$2b$12$t3riokCeV0c5NGPQMNKoyOM12mCQiLw8eq3BSTeCN14zUjGdPPyp."
             cursor.execute("""
                 INSERT INTO utilisateurs (email, nom_complet, mot_de_passe, role, statut)
                 VALUES ('admin@transpobot.sn', 'Administrateur', %s, 'admin', 'actif')
@@ -83,8 +83,8 @@ import re
 
 # Configuration base de données pour Railway
 def get_db_config():
-    # Vérifier si DATABASE_URL existe (Railway)
-    database_url = os.getenv("DATABASE_URL")
+    # Vérifier d'abord MYSQL_URL (variable Railway), puis DATABASE_URL
+    database_url = os.getenv("MYSQL_URL") or os.getenv("DATABASE_URL")
     
     if database_url:
         # Parse l'URL: mysql://user:password@host:port/database
@@ -618,13 +618,25 @@ async def test():
 
 @app.get("/")
 async def read_root():
+    """Route racine - retourne le statut de l'API"""
     try:
         if os.path.exists("index.html"):
             return FileResponse("index.html")
         else:
-            return {"message": "TranspoBot API is running", "note": "index.html not found"}
+            # Si index.html n'existe pas, retourner un JSON de test
+            return {
+                "status": "ok",
+                "message": "TranspoBot API is running",
+                "endpoints": {
+                    "health": "/health",
+                    "test": "/test",
+                    "docs": "/docs",
+                    "login": "/api/login"
+                }
+            }
     except Exception as e:
-        return {"error": str(e)}
+        print(f"Erreur dans read_root: {e}")
+        return {"error": str(e), "message": "Erreur serveur"}
 
 @app.get("/api/init")
 async def init_tables():

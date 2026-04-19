@@ -141,7 +141,7 @@ CREATE TABLE utilisateurs (
 -- Compte de test (mot de passe: transpo2026)
 -- Hash bcrypt généré avec: bcrypt.hashpw(b'transpo2026', bcrypt.gensalt()).decode()
 INSERT INTO utilisateurs (email, nom_complet, mot_de_passe, role, statut) VALUES
-('admin@transpobot.sn', 'Administrateur TranspoBot', '$2b$12$OIX0qY7Q5Z3Z.C8n7vW.h.WcKZQ6p.4QQ7Q5Z3Z.C8n7vW.h.WcKZQ6', 'admin', 'actif');
+('admin@transpobot.sn', 'Administrateur TranspoBot', '$2b$12$t3riokCeV0c5NGPQMNKoyOM12mCQiLw8eq3BSTeCN14zUjGdPPyp.', 'admin', 'actif');
 -- demo@transpobot.sn / transpo2026
 
 INSERT INTO vehicules (immatriculation, type, capacite, statut, kilometrage, date_acquisition, date_dernier_maintenance) VALUES
