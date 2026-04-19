@@ -511,10 +511,20 @@ def create_incident(incident: IncidentInput):
 def health():
     return {"status": "ok", "app": "TranspoBot"}
 
+"""@app.get("/")
+async def read_root():
+    return FileResponse("index.html")"""
 @app.get("/")
 async def read_root():
-    return FileResponse("index.html")
-
+    return {
+        "message": "TranspoBot API is running",
+        "endpoints": {
+            "health": "/health",
+            "stats": "/api/stats",
+            "vehicules": "/api/vehicules",
+            "docs": "/docs"
+        }
+    }
 @app.get("/api/init")
 async def init_tables():
     """Initialise les tables et données de test"""
