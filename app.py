@@ -14,6 +14,7 @@ import os
 import re
 import json
 import httpx
+import bcrypt
 from datetime import datetime
 
 # Railway utilise la variable d'environnement PORT
@@ -384,6 +385,57 @@ def get_lignes():
         FROM lignes ORDER BY code
     """)
 
+# ── Authentification ──────────────────────────────────────────
+@app.post("/api/login")
+async def login(req: LoginRequest):
+    """Authentification utilisateur"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id_utilisateur, email, nom_complet, mot_de_passe, role, statut FROM utilisateurs WHERE email = %s",
+            (req.email,)
+        )
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not user:
+            raise HTTPException(status_code=401, detail="Identifiants incorrects")
+
+        # Vérifier le mot de passe avec bcrypt
+        if not bcrypt.checkpw(req.password.encode('utf-8'), user['mot_de_passe'].encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Identifiants incorrects")
+
+        if user['statut'] != 'actif':
+            raise HTTPException(status_code=403, detail="Compte désactivé")
+
+        # Mettre à jour la dernière connexion
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE utilisateurs SET derniere_connexion = NOW() WHERE id_utilisateur = %s",
+            (user['id_utilisateur'],)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return {
+            "success": True,
+            "user": {
+                "id": user['id_utilisateur'],
+                "email": user['email'],
+                "nom": user['nom_complet'],
+                "role": user['role']
+            },
+            "token": f"token_{user['id_utilisateur']}_{int(datetime.now().timestamp())}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ── Modèles POST ──────────────────────────────────────────────
 class VehiculeInput(BaseModel):
     immatriculation: str
@@ -418,6 +470,15 @@ class IncidentInput(BaseModel):
     description: Optional[str] = None
     gravite: Literal["faible", "moyen", "grave"] = "faible"
     date_heure_incident: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    user: dict
+    token: str
 
 # ── POST Endpoints ────────────────────────────────────────────
 @app.post("/api/vehicules")

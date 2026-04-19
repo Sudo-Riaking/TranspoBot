@@ -118,9 +118,31 @@ CREATE TABLE incidents (
     FOREIGN KEY (id_trajet) REFERENCES trajets(id_trajet)
 );
 
+-- ------------------------------------------------------------
+-- Utilisateurs — authentification
+-- Pour l'accès à TranspoBot
+-- ------------------------------------------------------------
+CREATE TABLE utilisateurs (
+    id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    nom_complet VARCHAR(100) NOT NULL,
+    mot_de_passe VARCHAR(255) NOT NULL,  -- bcrypt hash
+    role ENUM('admin','gestionnaire','superviseur') DEFAULT 'gestionnaire',
+    statut ENUM('actif','inactif','bloque') DEFAULT 'actif',
+    derniere_connexion DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- ============================================================
 --  Données de test
 -- ============================================================
+
+-- Compte de test (mot de passe: transpo2026)
+-- Hash bcrypt généré avec: bcrypt.hashpw(b'transpo2026', bcrypt.gensalt()).decode()
+INSERT INTO utilisateurs (email, nom_complet, mot_de_passe, role, statut) VALUES
+('admin@transpobot.sn', 'Administrateur TranspoBot', '$2b$12$OIX0qY7Q5Z3Z.C8n7vW.h.WcKZQ6p.4QQ7Q5Z3Z.C8n7vW.h.WcKZQ6', 'admin', 'actif');
+-- demo@transpobot.sn / transpo2026
 
 INSERT INTO vehicules (immatriculation, type, capacite, statut, kilometrage, date_acquisition, date_dernier_maintenance) VALUES
 ('DK-1234-AB', 'bus',     60, 'actif',        45000,  '2021-03-15', '2026-01-10'),

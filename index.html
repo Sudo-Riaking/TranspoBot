@@ -54,6 +54,173 @@
     --gray-600: #475569;
   }
 
+  /* ────────────────────────────────────────────────────────────
+     PAGE DE CONNEXION
+     ──────────────────────────────────────────────────────────── */
+  
+  #login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+  }
+  
+  #login-page.hidden {
+    display: none;
+  }
+
+  .login-container {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 24px;
+    padding: 3rem;
+    width: min(420px, 90vw);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .login-logo-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+  }
+
+  .login-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .form-group input {
+    padding: 11px 16px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.4);
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1);
+  }
+
+  .form-group input::placeholder {
+    color: #64748b;
+  }
+
+  .btn-login {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 0.5rem;
+  }
+
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3);
+  }
+
+  .btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .login-error {
+    display: none;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .login-error.show {
+    display: block;
+  }
+
+  .login-demo {
+    margin-top: 1.5rem;
+    padding: 12px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #7dd3fc;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .login-demo:hover {
+    background: rgba(56, 189, 248, 0.15);
+  }
+
+  /* ────────────────────────────────────────────────────────────
+     APPLICATION PRINCIPALE
+     ──────────────────────────────────────────────────────────── */
+
   .app { display: flex; min-height: 100vh; }
   .sidebar {
     width: 280px;
@@ -599,6 +766,43 @@
 </style>
 </head>
 <body>
+
+<!-- PAGE DE CONNEXION -->
+<div id="login-page">
+  <div class="login-container">
+    <div class="login-header">
+      <div class="login-logo">
+        <div class="login-logo-icon"><i class="fas fa-bus"></i></div>
+        <div>
+          <div class="login-title">TranspoBot</div>
+          <div class="login-subtitle">Gestion de Transport</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-form">
+      <div class="login-error" id="loginError"></div>
+      
+      <div class="form-group">
+        <label for="emailInput">Adresse Email</label>
+        <input type="email" id="emailInput" placeholder="admin@transpobot.sn" required>
+      </div>
+
+      <div class="form-group">
+        <label for="passwordInput">Mot de passe</label>
+        <input type="password" id="passwordInput" placeholder="••••••••" required>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="handleLogin()">Se connecter</button>
+
+      <div class="login-demo" onclick="fillDemoCredentials()">
+        💡 Utiliser le compte de démo<br>
+        <small>(admin@transpobot.sn / transpo2026)</small>
+      </div>
+    </div>
+  </div>
+</div>
+
 <button class="menu-toggle" id="menuToggle">☰</button>
 <div class="app">
   <div class="sidebar" id="sidebar">
@@ -617,6 +821,9 @@
       <div class="nav-item" data-page="incidents"><i class="fas fa-exclamation-triangle"></i><span>Incidents</span></div>
       <div class="nav-item" data-page="statistiques"><i class="fas fa-chart-pie"></i><span>Statistiques</span></div>
       <div class="nav-item" data-page="chat"><i class="fas fa-comment-dots"></i><span>Assistant IA</span></div>
+    </div>
+    <div style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+      <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Déconnexion</span></div>
     </div>
   </div>
   <div class="main-content" id="mainContent"></div>
@@ -1683,11 +1890,110 @@ if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
 
+// ============
+// AUTHENTIFICATION
+// ============
+
+function checkAuthentication() {
+  const user = sessionStorage.getItem('tb_user');
+  const loginPage = document.getElementById('login-page');
+  const appDiv = document.querySelector('.app');
+  
+  if (user) {
+    // Utilisateur connecté
+    loginPage.classList.add('hidden');
+    appDiv.style.display = 'flex';
+  } else {
+    // Utilisateur non connecté
+    loginPage.classList.remove('hidden');
+    appDiv.style.display = 'none';
+  }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  
+  if (!email || !password) {
+    showLoginError('Veuillez remplir tous les champs');
+    return;
+  }
+  
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Connexion en cours...';
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      // Stocker les données de l'utilisateur
+      sessionStorage.setItem('tb_user', JSON.stringify(data.user));
+      sessionStorage.setItem('tb_token', data.token);
+      
+      // Masquer le login et afficher l'app
+      document.getElementById('login-page').classList.add('hidden');
+      document.querySelector('.app').style.display = 'flex';
+      
+      showNotification('Connecté avec succès !', 'success');
+      
+      // Charger les données
+      await REAL_DATA.loadAll();
+      renderDashboardData();
+      navigateTo('dashboard');
+    } else {
+      showLoginError(data.detail || 'Email ou mot de passe incorrect');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showLoginError('Erreur de connexion au serveur');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Se connecter';
+  }
+}
+
+function showLoginError(message) {
+  const errorDiv = document.getElementById('loginError');
+  errorDiv.textContent = message;
+  errorDiv.classList.add('show');
+  setTimeout(() => {
+    errorDiv.classList.remove('show');
+  }, 5000);
+}
+
+function fillDemoCredentials() {
+  document.getElementById('emailInput').value = 'admin@transpobot.sn';
+  document.getElementById('passwordInput').value = 'transpo2026';
+}
+
+function logout() {
+  sessionStorage.removeItem('tb_user');
+  sessionStorage.removeItem('tb_token');
+  document.getElementById('emailInput').value = '';
+  document.getElementById('passwordInput').value = '';
+  checkAuthentication();
+  showNotification('Déconnecté', 'info');
+}
+
+// Vérifier l'authentification au chargement
+checkAuthentication();
+
 // Initialiser l'application : charger les données et afficher le dashboard
 (async () => {
-  await REAL_DATA.loadAll();
-  renderDashboardData();
-  navigateTo('dashboard');
+  const user = sessionStorage.getItem('tb_user');
+  if (user) {
+    await REAL_DATA.loadAll();
+    renderDashboardData();
+    navigateTo('dashboard');
+  }
 })();
 
 </script>

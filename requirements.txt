@@ -4,3 +4,4 @@ pydantic==2.8.0
 mysql-connector-python==8.2.0
 httpx==0.25.2
 python-multipart==0.0.6
+bcrypt==4.1.1
