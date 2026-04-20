@@ -5,7 +5,7 @@ Projet GLSi L3 — ESP/UCAD
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from pathlib import Path
 from typing import Literal, Optional
@@ -623,6 +623,11 @@ def health():
 async def test():
     """Route de test simple"""
     return {"status": "ok", "message": "API is working"}
+
+@app.get("/favicon.ico")
+def favicon():
+    svg_icon = """<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"24\" fill=\"#0f172a\"/><path d=\"M28 32h72c6.6 0 12 5.4 12 12v28c0 6.6-5.4 12-12 12H28c-6.6 0-12-5.4-12-12V44c0-6.6 5.4-12 12-12z\" fill=\"#f43f5e\"/><circle cx=\"44\" cy=\"88\" r=\"10\" fill=\"#ffffff\"/><circle cx=\"84\" cy=\"88\" r=\"10\" fill=\"#ffffff\"/><path d=\"M36 50h56v12H36z\" fill=\"#ffffff\" opacity=\"0.75\"/></svg>"""
+    return Response(content=svg_icon.encode('utf-8'), media_type="image/svg+xml")
 
 @app.get("/")
 async def read_root():
