@@ -121,7 +121,7 @@ def get_db():
     return mysql.connector.connect(**config)
 
 LLM_API_KEY  = os.getenv("OPENAI_API_KEY", "")
-LLM_MODEL    = os.getenv("LLM_MODEL", "mixtral-8x7b-32768")
+LLM_MODEL    = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 
 # ── Schéma de la base (pour le prompt système) ─────────────────
