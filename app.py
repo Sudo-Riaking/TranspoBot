@@ -71,12 +71,14 @@ async def startup_event():
         for statement in sql_script.split(';'):
             statement = statement.strip()
             if statement and not statement.startswith('--'):
-                try:
-                    cursor.execute(statement)
-                except Exception as e:
-                    # Ignorer les erreurs "table already exists"
-                    if "already exists" not in str(e).lower():
-                        print(f"Warning: {e}")
+                # Ignorer CREATE DATABASE et USE (gérés par Railway)
+                if statement.upper().startswith('CREATE DATABASE') or statement.upper().startswith('USE '):
+                    continue
+            try:
+                cursor.execute(statement)
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    print(f"Warning: {e}")
 
         conn.commit()
         cursor.close()
