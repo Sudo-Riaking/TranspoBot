@@ -359,7 +359,6 @@ async def chat(msg: ChatMessage):
         return {
             "answer": explication,
             "data": data,
-            "sql": sql,
             "count": len(data),
         }
     except HTTPException:
