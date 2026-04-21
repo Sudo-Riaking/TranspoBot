@@ -331,7 +331,7 @@ async def ask_llm(question: str) -> dict:
             except json.JSONDecodeError as exc:
                 raise HTTPException(status_code=502, detail=f"JSON LLM invalide: {str(exc)}")
 
-        raise HTTPException(status_code=502, detail="Réponse LLM ne contient pas de JSON.")
+                return {"sql": None, "explication": content.strip() if content else "Je suis là pour vous aider avec vos données de transport."}
 
 # ── Routes API ─────────────────────────────────────────────────
 class ChatMessage(BaseModel):
