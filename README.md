@@ -270,7 +270,7 @@ Réponse : "Voici la recette par ligne... [tableau]"
 
 ## 🎓 Contexte Académique
 
-**TranspoBot** est un projet de fin d'études développé dans le cadre du programme **Génie Logiciel (GLSi) L3** à l'**ESP/UCAD** (École Supérieure Polytechnique / Université Cheikh Anta Diop, Dakar).
+**TranspoBot** est un projet académique développé dans le cadre du cours de **Système de Gestion de Base De Données (SGBD)**, en 1ère année de cycle d'ingénieur (DIC1) à l'**ESP/UCAD** (École Supérieure Polytechnique / Université Cheikh Anta Diop, Dakar).
 
 **Inspiré par** : Services de transport urbain sénégalais types (Dakar Dem Dikk, Ndiaga Ndiaye, etc.)
 
@@ -280,7 +280,7 @@ Réponse : "Voici la recette par ligne... [tableau]"
 
 Les questions, suggestions et améliorations sont les bienvenues !
 
-- 📧 **Email** : [À configurer]
+- 📧 **Email** : mariamadiop1404@gmail.com
 - 🐛 **Issues** : [GitHub Issues](https://github.com/Sudo-Riaking/TranspoBot/issues)
 - 📝 **Pull Requests** : Contributions sont bienvenues
 
@@ -303,7 +303,7 @@ Tous droits réservés © 2026
 
 <div align="center">
 
-**Fait avec ❤️ par les étudiants de GLSi L3**
+**Fait avec ❤️ par Saida, Coumba, Mariama et Natou**
 
 [⬆ Retour au sommet](#-transpobot)
 
