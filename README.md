@@ -12,7 +12,7 @@
 [![Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D17?style=flat-square&logo=railway)](https://railway.app)
 [![License](https://img.shields.io/badge/License-Academic%20Project-green?style=flat-square)](LICENSE)
 
-[🚀 Déploiement Live](#-déploiement-live) • [📋 Fonctionnalités](#-fonctionnalités-clés) • [🛠️ Stack Technique](#-stack-technique) • [📖 Documentation Complète](summary.md)
+[🚀 Déploiement Live](#-déploiement-live) • [📋 Fonctionnalités](#-fonctionnalités-clés) • [🛠️ Stack Technique](#-stack-technique) • [📖 Documentation Complète](Rapport_TranspoBot.pdf)
 
 </div>
 
@@ -113,7 +113,8 @@ TranspoBot/
 ├── run.sh                   # Script de lancement
 ├── .env                     # Variables d'environnement (local)
 ├── README.md               # Cette documentation (vitrine)
-└── summary.md              # Documentation technique complète
+└── summary.md              # Résumé de ce qui a été fait
+└── Rapport_TranspoBot.pdf     # Documentation technique complète
 ```
 
 ### Flux de données
@@ -182,7 +183,7 @@ L'app sera accessible sur : **http://localhost:8080**
 
 ## 📚 Documentation
 
-- **[Documentation Complète](summary.md)** — Architecture détaillée, structure de BD, et notes de développement
+- **[Documentation Complète](Rapport_TranspoBot.pdf)** — Architecture détaillée, structure de BD, et notes de développement
 - **[Code Source](app.py)** — Backend FastAPI avec tous les endpoints
 - **[Schéma DB](schema.sql)** — Structure MySQL complète
 
@@ -290,7 +291,7 @@ Les questions, suggestions et améliorations sont les bienvenues !
 
 Le projet a bénéficié de l'optimisation des performances et de la résolution de problèmes de compatibilité grâce aux outils de développement modernes, permettant d'accélérer le processus de développement tout en maintenant la qualité du code.
 
-Pour plus de détails techniques, architectural et historique du projet, consultez la [**documentation complète**](summary.md).
+Pour plus de détails techniques, architectural et historique du projet, consultez la [**documentation complète**](Rapport_TranspoBot.pdf).
 
 ---
 
